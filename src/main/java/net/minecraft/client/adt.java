@@ -632,7 +632,7 @@ public class adt {
                long var8 = (this.Z + (long)(1000000000 / var20) - System.nanoTime()) / 1000000L;
                if (var8 > 0L && var8 < 500L) {
                   try {
-                     Thread.sleep(var8);
+                     net.minecraft.client.web.Threads.sleep(var8);
                   } catch (InterruptedException var12) {
                      var12.printStackTrace();
                   }
@@ -661,7 +661,7 @@ public class adt {
 
                if (var21 > 0L && var21 < 500L) {
                   try {
-                     Thread.sleep(var21);
+                     net.minecraft.client.web.Threads.sleep(var21);
                   } catch (InterruptedException var11) {
                      var11.printStackTrace();
                   }

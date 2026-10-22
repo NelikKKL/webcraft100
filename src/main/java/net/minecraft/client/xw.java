@@ -113,7 +113,7 @@ public class xw implements rz {
             Display.update();
 
             try {
-               Thread.yield();
+               net.minecraft.client.web.Threads.yieldNow();
             } catch (Exception var14) {
             }
 

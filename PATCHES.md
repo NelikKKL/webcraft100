@@ -38,3 +38,6 @@
 * trace-exceptions.py — ловит исключения через CDP и переводит JS-стек в строки Java по mc100.js.map.
 Найдено и исправлено: `index.html` грузил alpha126.js; TeaVM генерировал `d--0.0` из `-0.0F` (k.java);
 `.lang` декодировался как картинка; Class.getResourceAsStream -> ResourceIO.
+* Главный путь игры выполняется в JS-колбэке (rAF), не в зелёном потоке TeaVM: Thread.sleep/yield там падают
+  ("thread is null"). Ограничитель FPS (adt), yield в кадре (Minecraft, xw) и ожидание потока статистики (jq)
+  заменены на web/Threads (no-op). Фоновые потоки (сеть, статистика) остаются на настоящем Thread.

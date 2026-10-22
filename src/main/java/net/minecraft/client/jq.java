@@ -145,7 +145,7 @@ public class jq {
          }
 
          try {
-            Thread.sleep(100L);
+            net.minecraft.client.web.Threads.sleep(100L);
          } catch (InterruptedException var10) {
             var10.printStackTrace();
          }

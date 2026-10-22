@@ -147,7 +147,7 @@ public abstract class Minecraft implements Runnable {
          var6.printStackTrace();
 
          try {
-            Thread.sleep(1000L);
+            net.minecraft.client.web.Threads.sleep(1000L);
          } catch (InterruptedException var5) {
          }
 
@@ -527,7 +527,7 @@ public abstract class Minecraft implements Runnable {
 
          this.v.a();
          pf.a("root");
-         Thread.yield();
+         net.minecraft.client.web.Threads.yieldNow();
          if (Keyboard.isKeyDown(65)) {
             Display.update();
          }
