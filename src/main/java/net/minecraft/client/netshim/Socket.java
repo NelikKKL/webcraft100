@@ -2,7 +2,6 @@ package net.minecraft.client.netshim;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.SocketAddress;
 
 /**
  * Замена java.net.Socket — см. PATCHES.md (JPMS-конфликт с java.base,
@@ -50,8 +49,8 @@ public class Socket {
     }
 
     // PATCH(1.0.0): методы, которые вызывает сетевой код 1.0.0 (hc/xi)
-    public void setSoTimeout(int ms) throws java.net.SocketException { }
-    public void setTcpNoDelay(boolean on) throws java.net.SocketException { }
+    public void setSoTimeout(int ms) throws SocketException { }
+    public void setTcpNoDelay(boolean on) throws SocketException { }
     public void connect(SocketAddress address, int timeoutMs) throws java.io.IOException {
         throw new ConnectException("Multiplayer is not yet supported in the web version");
     }

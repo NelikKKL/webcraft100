@@ -29,4 +29,5 @@ public class InetAddress {
     public String toString() {
         return host;
     }
+    public String getHostName() { return getHostAddress(); }
 }

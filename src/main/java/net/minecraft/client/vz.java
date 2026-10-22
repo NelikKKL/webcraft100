@@ -1,8 +1,5 @@
 package net.minecraft.client;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class vz {
    private String a;
@@ -11,14 +8,16 @@ public class vz {
       this.a = var1;
    }
 
+   /** PATCH(1.0.0): MessageDigest в TeaVM нет. Подпись файла статистики проверяется только самим портом -> FNV-1a 64. */
    public String a(String var1) {
-      try {
-         String var2 = this.a + var1;
-         MessageDigest var3 = MessageDigest.getInstance("MD5");
-         var3.update(var2.getBytes(), 0, var2.length());
-         return (new BigInteger(1, var3.digest())).toString(16);
-      } catch (NoSuchAlgorithmException var4) {
-         throw new RuntimeException(var4);
+      String var2 = this.a + var1;
+      long var3 = -3750763034362895579L;
+
+      for(int var5 = 0; var5 < var2.length(); ++var5) {
+         var3 ^= (long)var2.charAt(var5);
+         var3 *= 1099511628211L;
       }
+
+      return Long.toHexString(var3);
    }
 }

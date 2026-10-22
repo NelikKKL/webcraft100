@@ -4,7 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import net.minecraft.client.netshim.InetSocketAddress;
 import net.minecraft.client.netshim.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -228,7 +228,7 @@ public class xi extends xe {
       this.l.a((xe)(new ri(this.l, var3[0], var3.length > 1 ? this.a((String)var3[1], 25565) : 25565)));
    }
 
-   private void b(lo var1) throws java.net.SocketException, java.io.IOException {
+   private void b(lo var1) throws net.minecraft.client.netshim.SocketException, java.io.IOException {
       String var2 = var1.b;
       String[] var3 = var2.split(":");
       if (var2.startsWith("[")) {
@@ -382,7 +382,7 @@ public class xi extends xe {
    }
 
    // $FF: synthetic method
-   static void a(xi var0, lo var1) throws java.net.SocketException, java.io.IOException {
+   static void a(xi var0, lo var1) throws net.minecraft.client.netshim.SocketException, java.io.IOException {
       var0.b(var1);
    }
 

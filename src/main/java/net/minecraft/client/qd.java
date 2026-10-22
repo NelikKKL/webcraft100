@@ -262,7 +262,7 @@ public class qd extends ht {
          var8.a(this.g.n(), 2, 22, 16777215);
          var8.a(this.g.p(), 2, 32, 16777215);
          var8.a(this.g.o(), 2, 42, 16777215);
-         long var34 = Runtime.getRuntime().maxMemory();
+         long var34 = Runtime.getRuntime().totalMemory();
          long var43 = Runtime.getRuntime().totalMemory();
          long var54 = Runtime.getRuntime().freeMemory();
          long var58 = var43 - var54;

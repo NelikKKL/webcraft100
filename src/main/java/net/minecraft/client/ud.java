@@ -1,6 +1,6 @@
 package net.minecraft.client;
 
-import java.io.PushbackReader;
+import net.minecraft.client.netshim.PushbackReader;
 import java.io.Reader;
 
 final class ud implements if_ {
