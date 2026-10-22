@@ -1,0 +1,132 @@
+package net.minecraft.client;
+
+public class lv extends al {
+   public acf g;
+   public acf h;
+   public acf i;
+   public acf j;
+   public acf k;
+   public acf l;
+   public acf m;
+   public acf n;
+   public acf o;
+   public acf p;
+   public acf q;
+
+   public lv() {
+      float var1 = 0.0F;
+      byte var2 = 15;
+      this.g = new acf(this, 32, 4);
+      this.g.a(-4.0F, -4.0F, -8.0F, 8, 8, 8, var1);
+      this.g.a(0.0F, (float)(0 + var2), -3.0F);
+      this.h = new acf(this, 0, 0);
+      this.h.a(-3.0F, -3.0F, -3.0F, 6, 6, 6, var1);
+      this.h.a(0.0F, (float)var2, 0.0F);
+      this.i = new acf(this, 0, 12);
+      this.i.a(-5.0F, -4.0F, -6.0F, 10, 8, 12, var1);
+      this.i.a(0.0F, (float)(0 + var2), 9.0F);
+      this.j = new acf(this, 18, 0);
+      this.j.a(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.j.a(-4.0F, (float)(0 + var2), 2.0F);
+      this.k = new acf(this, 18, 0);
+      this.k.a(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.k.a(4.0F, (float)(0 + var2), 2.0F);
+      this.l = new acf(this, 18, 0);
+      this.l.a(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.l.a(-4.0F, (float)(0 + var2), 1.0F);
+      this.m = new acf(this, 18, 0);
+      this.m.a(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.m.a(4.0F, (float)(0 + var2), 1.0F);
+      this.n = new acf(this, 18, 0);
+      this.n.a(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.n.a(-4.0F, (float)(0 + var2), 0.0F);
+      this.o = new acf(this, 18, 0);
+      this.o.a(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.o.a(4.0F, (float)(0 + var2), 0.0F);
+      this.p = new acf(this, 18, 0);
+      this.p.a(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.p.a(-4.0F, (float)(0 + var2), -1.0F);
+      this.q = new acf(this, 18, 0);
+      this.q.a(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
+      this.q.a(4.0F, (float)(0 + var2), -1.0F);
+   }
+
+   public void a(ia var1, float var2, float var3, float var4, float var5, float var6, float var7) {
+      this.a(var2, var3, var4, var5, var6, var7);
+      this.g.a(var7);
+      this.h.a(var7);
+      this.i.a(var7);
+      this.j.a(var7);
+      this.k.a(var7);
+      this.l.a(var7);
+      this.m.a(var7);
+      this.n.a(var7);
+      this.o.a(var7);
+      this.p.a(var7);
+      this.q.a(var7);
+   }
+
+   public void a(float var1, float var2, float var3, float var4, float var5, float var6) {
+      this.g.g = var4 / (180F / (float)Math.PI);
+      this.g.f = var5 / (180F / (float)Math.PI);
+      float var7 = ((float)Math.PI / 4F);
+      this.j.h = -var7;
+      this.k.h = var7;
+      this.l.h = -var7 * 0.74F;
+      this.m.h = var7 * 0.74F;
+      this.n.h = -var7 * 0.74F;
+      this.o.h = var7 * 0.74F;
+      this.p.h = -var7;
+      this.q.h = var7;
+      float var8 = -0.0F;
+      float var9 = ((float)Math.PI / 8F);
+      this.j.g = var9 * 2.0F + var8;
+      this.k.g = -var9 * 2.0F - var8;
+      this.l.g = var9 * 1.0F + var8;
+      this.m.g = -var9 * 1.0F - var8;
+      this.n.g = -var9 * 1.0F + var8;
+      this.o.g = var9 * 1.0F - var8;
+      this.p.g = -var9 * 2.0F + var8;
+      this.q.g = var9 * 2.0F - var8;
+      float var10 = -(me.b(var1 * 0.6662F * 2.0F + 0.0F) * 0.4F) * var2;
+      float var11 = -(me.b(var1 * 0.6662F * 2.0F + (float)Math.PI) * 0.4F) * var2;
+      float var12 = -(me.b(var1 * 0.6662F * 2.0F + ((float)Math.PI / 2F)) * 0.4F) * var2;
+      float var13 = -(me.b(var1 * 0.6662F * 2.0F + ((float)Math.PI * 1.5F)) * 0.4F) * var2;
+      float var14 = Math.abs(me.a(var1 * 0.6662F + 0.0F) * 0.4F) * var2;
+      float var15 = Math.abs(me.a(var1 * 0.6662F + (float)Math.PI) * 0.4F) * var2;
+      float var16 = Math.abs(me.a(var1 * 0.6662F + ((float)Math.PI / 2F)) * 0.4F) * var2;
+      float var17 = Math.abs(me.a(var1 * 0.6662F + ((float)Math.PI * 1.5F)) * 0.4F) * var2;
+      acf var10000 = this.j;
+      var10000.g += var10;
+      var10000 = this.k;
+      var10000.g += -var10;
+      var10000 = this.l;
+      var10000.g += var11;
+      var10000 = this.m;
+      var10000.g += -var11;
+      var10000 = this.n;
+      var10000.g += var12;
+      var10000 = this.o;
+      var10000.g += -var12;
+      var10000 = this.p;
+      var10000.g += var13;
+      var10000 = this.q;
+      var10000.g += -var13;
+      var10000 = this.j;
+      var10000.h += var14;
+      var10000 = this.k;
+      var10000.h += -var14;
+      var10000 = this.l;
+      var10000.h += var15;
+      var10000 = this.m;
+      var10000.h += -var15;
+      var10000 = this.n;
+      var10000.h += var16;
+      var10000 = this.o;
+      var10000.h += -var16;
+      var10000 = this.p;
+      var10000.h += var17;
+      var10000 = this.q;
+      var10000.h += -var17;
+   }
+}

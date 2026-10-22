@@ -1,0 +1,361 @@
+package org.lwjgl.opengl;
+
+import java.nio.ShortBuffer;
+
+import net.minecraft.client.web.*;
+import org.teavm.jso.typedarrays.Float32Array;
+import org.teavm.jso.typedarrays.Uint8Array;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+/**
+ * Все GL-операции проходят через maybeRecord(): если сейчас идёт запись
+ * display list (glNewList был вызван, glEndList ещё нет), вызов
+ * складывается в список и НЕ исполняется сразу — исполнится только при
+ * будущем glCallList. Иначе выполняется немедленно.
+ *
+ * Именно так себя ведёт настоящий OpenGL: всё, что можно "показывать",
+ * записывается, а не выполняется, во время GL_COMPILE.
+ *
+ * GLBridge — это точка, которая реально дергает GLState/WebGL2; вынесена
+ * отдельно, чтобы дать методам тут единообразную форму
+ * maybeRecord(() -> GLBridge.xxx(...)).
+ */
+final class GLDispatch {
+    private GLDispatch() {}
+
+    private static GLState s() { return GLState.INSTANCE; }
+
+    private static void maybeRecord(Runnable action) {
+        GLState state = s();
+        if (state.isRecordingPublic()) {
+            state.recordPublic(action);
+        } else {
+            action.run();
+        }
+    }
+
+    // --- state toggles ---
+    static void enable(int cap, boolean on) {
+        maybeRecord(() -> GLBridge.setCapability(s(), cap, on));
+    }
+
+    // --- matrix stack ---
+    // ИСПРАВЛЕНО: раньше эти методы вызывали GLState напрямую (see old
+    // GL11.glPushMatrix/glTranslatef/etc), минуя запись в display list.
+    // Настоящий OpenGL КОМПИЛИРУЕТ glPushMatrix/glTranslatef/glScalef/
+    // glRotatef/glPopMatrix/glLoadIdentity/glMatrixMode внутри glNewList —
+    // без этого перенос чанка в его мировую позицию (glPushMatrix +
+    // glTranslatef + ... + glPopMatrix вокруг тесселляции в bw.java)
+    // применялся только ОДИН РАЗ при компиляции и тут же откатывался
+    // парным glPopMatrix — к моменту реального glCallList (много кадров
+    // спустя) от этого смещения не оставалось и следа: вершины (корректные
+    // локальные 0..15 координаты блока) рисовались без пересчёта в мировые
+    // координаты, используя ЧТО БЫ ТО НИ БЫЛО в текущей modelview-матрице
+    // на тот момент — отсюда "блоки есть по коллизии, но невидимы": данные
+    // и текстуры были в порядке, но чанк рисовался в случайном/неверном
+    // месте (или вне видимости) относительно текущей камеры.
+    static void matrixMode(int mode) {
+        maybeRecord(() -> s().matrixMode(mode));
+    }
+
+    static void loadIdentity() {
+        maybeRecord(() -> s().loadIdentity());
+    }
+
+    static void pushMatrix() {
+        maybeRecord(() -> s().pushMatrix());
+    }
+
+    static void popMatrix() {
+        maybeRecord(() -> s().popMatrix());
+    }
+
+    static void translatef(float x, float y, float z) {
+        maybeRecord(() -> s().translatef(x, y, z));
+    }
+
+    static void rotatef(float angle, float x, float y, float z) {
+        maybeRecord(() -> s().rotatef(angle, x, y, z));
+    }
+
+    static void scalef(float x, float y, float z) {
+        maybeRecord(() -> s().scalef(x, y, z));
+    }
+
+    static void clear(int mask) {
+        maybeRecord(() -> GLBridge.clear(s(), mask));
+    }
+
+    static void clearColor(float r, float g, float b, float a) {
+        maybeRecord(() -> s().gl.clearColor(r, g, b, a));
+    }
+
+    static void clearDepth(float d) {
+        maybeRecord(() -> s().gl.clearDepth(d));
+    }
+
+    static void colorMask(boolean r, boolean g, boolean b, boolean a) {
+        maybeRecord(() -> { GLState cs = s(); cs.cmR = r; cs.cmG = g; cs.cmB = b; cs.cmA = a; cs.gl.colorMask(r, g, b, a); });
+    }
+
+    static void depthFunc(int func) {
+        maybeRecord(() -> GLBridge.setDepthFunc(s(), func));
+    }
+
+    static void depthMask(boolean flag) {
+        maybeRecord(() -> GLBridge.setDepthMask(s(), flag));
+    }
+
+    static void cullFace(int mode) {
+        maybeRecord(() -> GLBridge.setCullFace(s(), mode));
+    }
+
+    static void blendFunc(int sfactor, int dfactor) {
+        maybeRecord(() -> GLBridge.setBlendFunc(s(), sfactor, dfactor));
+    }
+
+    static void lineWidth(float width) {
+        maybeRecord(() -> s().gl.lineWidth(width));
+    }
+
+    static void polygonOffset(float factor, float units) {
+        maybeRecord(() -> s().gl.polygonOffset(factor, units));
+    }
+
+    static void alphaFunc(int func, float ref) {
+        maybeRecord(() -> GLBridge.setAlphaFunc(s(), func, ref));
+    }
+
+    static void viewport(int x, int y, int w, int h) {
+        maybeRecord(() -> s().gl.viewport(x, y, w, h));
+    }
+
+    static void color(float r, float g, float b, float a) {
+        maybeRecord(() -> GLBridge.setColor(s(), r, g, b, a));
+    }
+
+    static void normal(float x, float y, float z) {
+        maybeRecord(() -> GLBridge.setCurrentNormal(s(), x, y, z));
+    }
+
+    // --- textures ---
+    static int genTexture() { return GLBridge.genTexture(s()); }
+
+    /**
+     * IntBuffer-форма glGenTextures: реальная семантика LWJGL — заполнить
+     * buffer.remaining() слотов НОВЫМИ ID, начиная с текущей position(),
+     * НЕ продвигая саму position() (вызывающий код сам потом читает через
+     * position()..limit(), см. ds.java в decomp). Это единственная форма,
+     * реально используемая в decomp (проверено grep — no-arg int-форма
+     * нигде не вызывается вне нашего собственного smoke-теста).
+     */
+    static void genTextures(IntBuffer textures) {
+        GLBridge.genTexturesInto(s(), textures);
+    }
+
+    static void bindTexture(int target, int texture) {
+        maybeRecord(() -> GLBridge.bindTexture(s(), texture));
+    }
+
+    static void deleteTexture(int texture) {
+        maybeRecord(() -> GLBridge.deleteTexture(s(), texture));
+    }
+
+    static void deleteTextures(IntBuffer textures) {
+        maybeRecord(() -> GLBridge.deleteTexturesFrom(s(), textures));
+    }
+
+    static void texParameteri(int target, int pname, int param) {
+        maybeRecord(() -> GLBridge.texParameteri(s(), target, pname, param));
+    }
+
+    static void pixelStorei(int pname, int param) {
+        maybeRecord(() -> s().gl.pixelStorei(pname, param));
+    }
+
+    static void texImage2D(int target, int level, int w, int h, ByteBuffer pixels) {
+        Uint8Array data = GLBridge.toUint8Array(pixels, w * h * 4);
+        maybeRecord(() -> GLRaw.texImage2DRGBA(s().gl, target, level, w, h, data));
+    }
+
+    static void texSubImage2D(int target, int level, int xoff, int yoff, int w, int h, ByteBuffer pixels) {
+        Uint8Array data = GLBridge.toUint8Array(pixels, w * h * 4);
+        maybeRecord(() -> GLRaw.texSubImage2DRGBA(s().gl, target, level, xoff, yoff, w, h, data));
+    }
+
+    // --- vertex arrays ---
+    // ВАЖНО #1: LWJGL glXxxPointer(..., Buffer) использует ТЕКУЩУЮ позицию
+    // буфера (buffer.position()) как базовый offset для чтения атрибута —
+    // decomp-код явно этим пользуется (см. is.java: buffer.position(3) перед
+    // glTexCoordPointer, buffer.position(0) перед glVertexPointer — общий
+    // interleaved FloatBuffer, разный "срез" через position()). Поэтому
+    // захватываем position() ЗДЕСЬ, синхронно — актуально всегда.
+    //
+    // ВАЖНО #2 (ИСПРАВЛЕНО): раньше сама установка указателя тоже уходила
+    // через maybeRecord() — идея была в том, что несколько пар
+    // (glVertexPointer, glDrawArrays) с РАЗНЫМИ офсетами внутри ОДНОГО
+    // display list'а (обычный паттерн для террейна: разные грани/подмеши в
+    // одном list'е) должны при воспроизведении брать каждая свой офсет, а
+    // не последний записанный. Но это ломало кое-что более фундаментальное:
+    // glVertexPointer в НАСТОЯЩЕМ OpenGL вообще не компилируется в display
+    // list — компилируется только glDrawArrays, который на момент записи
+    // "запекает" данные ИЗ ТЕКУЩИХ (на тот момент) указателей. Раз установка
+    // указателя была отложена, GLState.attrs[i].fromClient/clientBuffer к
+    // моменту вызова glDrawArrays (тоже во время записи!) ещё не
+    // обновлялись — снимок в drawArrays() (см. ниже) проверял устаревший
+    // fromClient=false и никогда не срабатывал, из-за чего geometry чанков
+    // рисовалась пустой/неверной при каждом glCallList (коллизии работали,
+    // т.к. они не зависят от кэша геометрии).
+    //
+    // Установка указателя теперь применяется НЕМЕДЛЕННО всегда — это не
+    // ломает сценарий "несколько офсетов в одном list": вызовы идут строго
+    // последовательно в рамках одного синхронного цикла тесселляции, так что
+    // к моменту КАЖДОГО glDrawArrays state уже отражает офсет именно этого
+    // под-рисунка (glVertexPointer для него вызывается непосредственно
+    // перед) — drawArrays() ниже сам снимает снимок в момент записи.
+    static void vertexPointerClient(int size, int stride, FloatBuffer buffer) {
+        int baseOffset = buffer.position();
+        GLBridge.setClientArray(s(), GLBridge.ATTR_POSITION, size, stride, buffer, baseOffset);
+    }
+
+    static void vertexPointerOffset(int size, int type, int stride, long offset) {
+        GLBridge.setBoundArray(s(), GLBridge.ATTR_POSITION, size, stride, offset);
+    }
+
+    static void texCoordPointerClient(int size, int stride, FloatBuffer buffer) {
+        int baseOffset = buffer.position();
+        GLBridge.setClientArray(s(), GLBridge.ATTR_TEXCOORD, size, stride, buffer, baseOffset);
+    }
+
+    static void texCoordPointerOffset(int size, int type, int stride, long offset) {
+        GLBridge.setBoundArray(s(), GLBridge.ATTR_TEXCOORD, size, stride, offset);
+    }
+
+    static void colorPointerClient(int size, int stride, ByteBuffer buffer) {
+        int baseOffset = buffer.position();
+        GLBridge.setClientArrayBytes(s(), GLBridge.ATTR_COLOR, size, stride, buffer, baseOffset);
+    }
+
+    static void colorPointerOffset(int size, int type, int stride, long offset) {
+        GLBridge.setBoundArray(s(), GLBridge.ATTR_COLOR, size, stride, offset);
+    }
+
+    static void normalPointerClient(int stride, ByteBuffer buffer) {
+        int baseOffset = buffer.position();
+        GLBridge.setClientArrayBytes(s(), GLBridge.ATTR_NORMAL, 3, stride, buffer, baseOffset);
+    }
+
+    static void normalPointerOffset(int type, int stride, long offset) {
+        GLBridge.setBoundArray(s(), GLBridge.ATTR_NORMAL, 3, stride, offset);
+    }
+
+    static void drawArrays(int mode, int first, int count) {
+        GLState state = s();
+        if (state.isRecordingPublic()) {
+            boolean anyClient = false;
+            for (GLState.AttrState a : state.attrs) {
+                if (a.size > 0 && a.fromClient) { anyClient = true; break; }
+            }
+            if (anyClient) {
+                // ИСПРАВЛЕНО (главная причина "блоки есть по коллизии, но
+                // невидимы"): раньше весь glDrawArrays целиком откладывался
+                // через maybeRecord() — включая чтение client-side буферов
+                // (is.java Tessellator использует ОДИН переиспользуемый
+                // ByteBuffer для HUD, GUI, неба И КАЖДОГО чанка). Display
+                // list чанка компилируется ОДИН раз, а воспроизводится
+                // (glCallList) много кадров спустя — к этому моменту общий
+                // буфер тессельятора уже десятки раз перезаписан другими
+                // отрисовками, и stageClientBuffers() при реальном
+                // воспроизведении читал уже ЧУЖИЕ/пустые данные. Небо
+                // работало только потому, что его display list
+                // перезаписывается и тут же проигрывается в том же кадре —
+                // буфер ещё не успевал измениться.
+                //
+                // Теперь: если сейчас идёт запись list'а и хотя бы один
+                // атрибут — client-side буфер, СНИМАЕМ снимок данных
+                // СРАЗУ (пока буфер ещё содержит то, что только что
+                // затессельировал вызывающий код), и в отложенный вызов
+                // передаём уже готовый float[] снимок, а не ссылку на
+                // живой буфер. Коллизии (данные блоков в мире) эта ошибка
+                // никогда не задевала — она чисто про кэш геометрии.
+                float[] snapshot = GLBridge.snapshotClientBuffers(state, first, count);
+                // PERF: геометрия заливается в собственный VBO/VAO один раз, при
+                // записи; replay = bindVertexArray + drawArrays (см. DrawRecord).
+                state.recordPublic(GLBridge.createDrawRecord(state, mode, snapshot, count));
+                return;
+            }
+        }
+        maybeRecord(() -> GLBridge.drawArrays(s(), mode, first, count));
+    }
+
+    static void disableClientState(int cap) {
+        int attr = GLBridge.clientStateToAttr(cap);
+        if (attr < 0) return;
+        s().attrs[attr].size = 0;
+    }
+
+    // --- lighting / fog ---
+    static void light(int light, int pname, FloatBuffer params) {
+        float[] v = GLBridge.readFloats(params, 4);
+        maybeRecord(() -> GLBridge.setLight(s(), light, pname, v));
+    }
+
+    static void lightModel(int pname, FloatBuffer params) {
+        float[] v = GLBridge.readFloats(params, 4);
+        maybeRecord(() -> GLBridge.setLightModel(s(), pname, v));
+    }
+
+    static void fog(int pname, FloatBuffer params) {
+        float[] v = GLBridge.readFloats(params, 4);
+        maybeRecord(() -> GLBridge.setFogv(s(), pname, v));
+    }
+
+    static void fogf(int pname, float param) {
+        maybeRecord(() -> GLBridge.setFogf(s(), pname, param));
+    }
+
+    static void fogi(int pname, int param) {
+        maybeRecord(() -> GLBridge.setFogi(s(), pname, param));
+    }
+
+    // --- misc ---
+    // PERF: gl.getError() в браузере — синхронный round-trip к GPU-процессу.
+    // Minecraft.c(String) звал его дважды за кадр только ради лога в консоль
+    // (визуально ничего не меняет). Для отладки: DEBUG_GL_ERRORS = true.
+    static final boolean DEBUG_GL_ERRORS = false;
+
+    static int getError() { return DEBUG_GL_ERRORS ? s().gl.getError() : 0; }
+
+    static String getString(int name) {
+        return GLBridge.getString(s(), name);
+    }
+
+    static void getFloat(int pname, FloatBuffer out) {
+        GLBridge.getFloatv(s(), pname, out);
+    }
+
+    static void readPixels(int x, int y, int w, int h, ByteBuffer pixels) {
+        Uint8Array tmp = GLBridge.newUint8Array(w * h * 4);
+        s().gl.finish();
+        GLRaw.readPixelsRGBA(s().gl, x, y, w, h, tmp);
+        GLBridge.copyToByteBuffer(tmp, pixels);
+    }
+
+    // PATCH(1.0.0)
+    static void copyTexSubImage2D(int target, int level, int xo, int yo, int x, int y, int w, int h) {
+        maybeRecord(() -> GLRaw.copyTexSubImage2D(s().gl, target, level, xo, yo, x, y, w, h));
+    }
+
+    /** Нужен только GL_VIEWPORT (2978): [0, 0, ширина, высота] канваса. */
+    static void getInteger(int pname, IntBuffer out) {
+        int pos = out.position();
+        if (pname == 2978) {
+            out.put(pos, 0); out.put(pos + 1, 0);
+            out.put(pos + 2, Display.getWidth()); out.put(pos + 3, Display.getHeight());
+        }
+    }
+}

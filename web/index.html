@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minecraft Alpha 1.2.6 — web port</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    background: #000;
+    font-family: -apple-system, "Segoe UI", sans-serif;
+    height: 100%;
+  }
+  #glcanvas {
+    display: block;
+    width: 100vw; height: 100vh;
+    /* Курсор задаётся из Java (MouseBridge.applyCursor): картинка зашита в
+       код, размер приведён к системной стрелке, есть 2x-вариант для HiDPI. */
+  }
+
+  /* Общий тайловый фон меню (16x16 текстура, замощена как в оригинальной игре) — используется и экраном загрузки, и экраном краша. */
+  .tiled-bg {
+    position: fixed; inset: 0;
+    /* loading-bg.png (16x16) вшит как data URI — отдельного файла нет */
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAAwBQTFRFWT0peVU6dFhEbGxslmxKuYVch4eHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQDLsGAAAABh0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjM2qefiJQAAAHpJREFUKFMlj4kRACEIA8MJ9l/y7aKOECHhyXRXrQm+JtWAviGITzKkeCQBoPQZSYpaVvCDMXg0XHNotypFKVsXQAO0pAQ2bZnVOCyX9qBXQbXy1S1RPVp+fW2LBx8yfOA6CZF3xl2qPis6AP1kscAO5ZYGHOP2m6LyA0AaAl8NwX0hAAAAAElFTkSuQmCC');
+    background-repeat: repeat;
+    background-size: 32px 32px;
+    image-rendering: pixelated;
+  }
+  .tiled-bg::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  #loading-screen, #crash-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  #crash-screen { display: none; z-index: 200; }
+
+  #loading-box {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    color: #fff;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #loading-title {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+  #loading-bar-track {
+    width: 300px; height: 18px;
+    background: #000;
+    border: 2px solid #fff;
+    box-sizing: border-box;
+    padding: 2px;
+  }
+  #loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #3c8527;
+    transition: width 0.15s linear;
+  }
+  #loading-label {
+    font-size: 13px;
+    opacity: 0.85;
+    min-height: 16px;
+  }
+
+  #crash-box {
+    position: relative;
+    width: min(720px, 90vw);
+    max-height: 80vh;
+    background: #fff;
+    color: #222;
+    border-radius: 4px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  #crash-header {
+    padding: 16px 20px 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  #crash-header h1 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: #b02020;
+  }
+  #crash-header p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+  }
+  #crash-log {
+    flex: 1;
+    margin: 14px 20px;
+    padding: 10px;
+    background: #f4f4f4;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    resize: none;
+    color: #333;
+  }
+  #crash-actions {
+    padding: 12px 20px 18px;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  #crash-copy-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border: 1px solid #999;
+    border-radius: 3px;
+    background: #eee;
+    cursor: pointer;
+  }
+  #crash-copy-btn:hover { background: #e0e0e0; }
+  #crash-copy-btn.copied { background: #cdeecd; border-color: #6ab86a; }
+</style>
+</head>
+<body>
+  <canvas id="glcanvas"></canvas>
+
+  <div id="loading-screen">
+    <div class="tiled-bg"></div>
+    <div id="loading-box">
+      <div id="loading-title">Minecraft</div>
+      <div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
+      <div id="loading-label">Loading…</div>
+    </div>
+  </div>
+
+  <div id="crash-screen">
+    <div class="tiled-bg"></div>
+    <div id="crash-box">
+      <div id="crash-header">
+        <h1>Game crashed</h1>
+        <p>Скопируйте лог ниже, если будете сообщать о проблеме.</p>
+      </div>
+      <textarea id="crash-log" readonly></textarea>
+      <div id="crash-actions">
+        <button id="crash-copy-btn">Copy log</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- akrile — собственный формат архива вместо zip/JSZip (см. TODO.md).
+       Вся библиотека (JS-обвязка + WASM в base64) — один файл akrile.js.
+       ES-модуль: инициализация и вызов window.main() ниже, после alpha126.js. -->
+
+  <script>
+    (function () {
+      var loadingScreen = document.getElementById('loading-screen');
+      var crashScreen = document.getElementById('crash-screen');
+      var barFill = document.getElementById('loading-bar-fill');
+      var label = document.getElementById('loading-label');
+      var canvas = document.getElementById('glcanvas');
+      var crashLog = document.getElementById('crash-log');
+      var copyBtn = document.getElementById('crash-copy-btn');
+
+      window.__setLoadingProgress = function (fraction, text) {
+        var pct = Math.max(0, Math.min(100, Math.round(fraction * 100)));
+        barFill.style.width = pct + '%';
+        if (text) label.textContent = text;
+      };
+
+      window.__hideLoadingScreen = function () {
+        loadingScreen.style.display = 'none';
+      };
+
+      window.__showCrashScreen = function (text) {
+        loadingScreen.style.display = 'none';
+        canvas.style.visibility = 'hidden';
+        crashLog.value = text;
+        crashScreen.style.display = 'flex';
+      };
+
+      copyBtn.addEventListener('click', function () {
+        crashLog.select();
+        var done = function () {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(function () {
+            copyBtn.textContent = 'Copy log';
+            copyBtn.classList.remove('copied');
+          }, 1500);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(crashLog.value).then(done).catch(function () {
+            document.execCommand('copy');
+            done();
+          });
+        } else {
+          document.execCommand('copy');
+          done();
+        }
+      });
+
+      // Ловим любые необработанные ошибки/отказы промисов на уровне
+      // страницы (не только краши, пойманные внутри самой игры через
+      // WebMinecraft.a(hr)) — чтобы вместо тихого пустого экрана
+      // пользователь всегда видел, что пошло не так.
+      window.addEventListener('error', function (e) {
+        window.__showCrashScreen(
+          'Uncaught error: ' + (e.message || e) +
+          (e.filename ? '\n' + e.filename + ':' + e.lineno + ':' + e.colno : '') +
+          (e.error && e.error.stack ? '\n\n' + e.error.stack : '')
+        );
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        var reason = e.reason;
+        window.__showCrashScreen(
+          'Unhandled promise rejection: ' +
+          (reason && reason.stack ? reason.stack : String(reason))
+        );
+      });
+    })();
+  </script>
+
+  <!-- Текстур-паки (.zip): разбор архива, IndexedDB, drag&drop — см. extras.js -->
+  <script src="extras.js"></script>
+  <script src="alpha126.js"></script>
+  <script type="module">
+    // ВАЖНО: alpha126.js — UMD-модуль. В браузерном контексте (нет AMD/
+    // CommonJS) он делает `self.main = <точка входа>` — то есть просто
+    // ПРИСВАИВАЕТ функцию глобальному window.main, но НЕ вызывает её сама.
+    // Без этого явного вызова игра никогда не стартует — весь остальной
+    // код (прелоадер, экран загрузки и т.д.) просто никогда не выполнится,
+    // при этом БЕЗ единой ошибки в консоли (что маскирует проблему —
+    // выглядит как тихое зависание на "Loading...", а не как явный сбой).
+    // Обнаружено и подтверждено вручную в headless-браузере.
+    //
+    // akrile — собственная библиотека распаковки архивов (замена JSZip,
+    // см. TODO.md/PATCHES.md) — ES-модуль с WASM-ядром, поэтому этот блок
+    // сам по себе тоже <script type="module"> (обычный <script> не может
+    // делать top-level import). window.main() вызывается ТОЛЬКО после
+    // готовности WASM — ResourcePreloader (внутри main()) обращается к
+    // window.Akrile синхронно и должен видеть его уже полностью готовым.
+    import Akrile from './akrile.js';
+
+    Akrile.ready
+      .then(() => {
+        window.Akrile = Akrile;
+        try {
+          window.main();
+        } catch (e) {
+          window.__showCrashScreen('Failed to start: ' + (e && e.stack ? e.stack : String(e)));
+        }
+      })
+      .catch((e) => {
+        window.__showCrashScreen(
+          'Failed to initialize akrile (WASM archive library):\n' +
+          (e && e.stack ? e.stack : String(e))
+        );
+      });
+  </script>
+</body>
+</html>
