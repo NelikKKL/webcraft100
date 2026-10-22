@@ -93,4 +93,13 @@ public final class ResourceIO {
             // no-op: нет реального системного ресурса для освобождения.
         }
     }
+
+    /**
+     * PATCH(1.0.0): универсальная замена Class.getResourceAsStream(path) — для текстур-паков (afs.a),
+     * где путь может вести и на картинку, и на текст. Сначала ищем текст, затем картинку.
+     */
+    public static InputStream getResourceAsStream(String path) {
+        InputStream text = getTextResourceAsStream(path);
+        return text != null ? text : getImageResourceAsStream(path);
+    }
 }

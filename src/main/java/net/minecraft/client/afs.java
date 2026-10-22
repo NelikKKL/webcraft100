@@ -25,6 +25,6 @@ public abstract class afs {
    }
 
    public InputStream a(String var1) {
-      return afs.class.getResourceAsStream(var1);
+      return net.minecraft.client.web.ResourceIO.getResourceAsStream(var1);
    }
 }

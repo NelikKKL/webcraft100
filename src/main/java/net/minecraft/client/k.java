@@ -62,7 +62,7 @@ public abstract class k {
    public float[] a(float var1, float var2) {
       float var3 = 0.4F;
       float var4 = me.b(var1 * (float)Math.PI * 2.0F) - 0.0F;
-      float var5 = -0.0F;
+      float var5 = 0.0F;
       if (var4 >= var5 - var3 && var4 <= var5 + var3) {
          float var6 = (var4 - var5) / var3 * 0.5F + 0.5F;
          float var7 = 1.0F - (1.0F - me.a(var6 * (float)Math.PI)) * 0.99F;

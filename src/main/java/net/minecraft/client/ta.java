@@ -36,7 +36,7 @@ public class ta extends fa {
       float var7 = -14.0F;
       this.i.f = 0.0F;
       this.i.d = var7;
-      this.i.e = -0.0F;
+      this.i.e = 0.0F;
       acf var10000 = this.l;
       var10000.f -= 0.0F;
       var10000 = this.m;
@@ -95,7 +95,7 @@ public class ta extends fa {
       this.m.e = 0.0F;
       this.l.d = 9.0F + var7;
       this.m.d = 9.0F + var7;
-      this.g.e = -0.0F;
+      this.g.e = 0.0F;
       this.g.d = var7 + 1.0F;
       this.h.c = this.g.c;
       this.h.d = this.g.d;

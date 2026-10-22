@@ -32,15 +32,15 @@ public class fb {
    }
 
    private fb(double var1, double var3, double var5) {
-      if (var1 == (double)-0.0F) {
+      if (var1 == (double)0.0F) {
          var1 = (double)0.0F;
       }
 
-      if (var3 == (double)-0.0F) {
+      if (var3 == (double)0.0F) {
          var3 = (double)0.0F;
       }
 
-      if (var5 == (double)-0.0F) {
+      if (var5 == (double)0.0F) {
          var5 = (double)0.0F;
       }
 

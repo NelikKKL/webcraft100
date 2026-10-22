@@ -125,7 +125,7 @@ public final class ResourcePreloader {
         "      return;" +
         "    }" +
         "    var entry = entries[done];" +
-        "    var isText = entry.name.toLowerCase().endsWith('.txt');" +
+        "    var isText = /\\.(txt|lang)$/i.test(entry.name);" +
         // Звуки (sound/, music/, streaming/ ...) идут в звуковой движок как есть; декодирует их
         // Web Audio позже, по первому использованию (см. extras.js, раздел "Звук").
         "    var isAudio = !isText && window.Sounds && window.Sounds.isAudioFile(entry.name);" +

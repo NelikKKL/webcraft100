@@ -78,7 +78,7 @@ public class lv extends al {
       this.o.h = var7 * 0.74F;
       this.p.h = -var7;
       this.q.h = var7;
-      float var8 = -0.0F;
+      float var8 = 0.0F;
       float var9 = ((float)Math.PI / 8F);
       this.j.g = var9 * 2.0F + var8;
       this.k.g = -var9 * 2.0F - var8;

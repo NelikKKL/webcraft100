@@ -18,7 +18,7 @@ public class abe {
    public abe(ki var1, String var2, zh var3) {
       BufferedImage var4;
       try {
-         var4 = ImageIO.read(zh.class.getResourceAsStream(var2));
+         var4 = ImageIO.read(net.minecraft.client.web.ResourceIO.getImageResourceAsStream(var2));
       } catch (IOException var18) {
          throw new RuntimeException(var18);
       }

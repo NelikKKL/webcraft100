@@ -11,7 +11,7 @@ public class kp {
 
    private kp() {
       try {
-         BufferedReader var1 = new BufferedReader(new InputStreamReader(kp.class.getResourceAsStream("/achievement/map.txt")));
+         BufferedReader var1 = new BufferedReader(new InputStreamReader(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/achievement/map.txt")));
 
          String var2;
          while((var2 = var1.readLine()) != null) {

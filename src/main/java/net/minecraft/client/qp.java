@@ -9,8 +9,8 @@ public class qp {
 
    private qp() {
       try {
-         this.b.load(qp.class.getResourceAsStream("/lang/en_US.lang"));
-         this.b.load(qp.class.getResourceAsStream("/lang/stats_US.lang"));
+         this.b.load(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/lang/en_US.lang"));
+         this.b.load(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/lang/stats_US.lang"));
       } catch (IOException var2) {
          var2.printStackTrace();
       }

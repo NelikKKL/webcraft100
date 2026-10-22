@@ -64,6 +64,7 @@
               <targetDirectory>${project.build.directory}/generated/js</targetDirectory>
               <targetFileName>mc100.js</targetFileName>
               <sourceMapsGenerated>true</sourceMapsGenerated>
+              <stackTraceIncluded>true</stackTraceIncluded>
               <debugInformationGenerated>true</debugInformationGenerated>
               <optimizationLevel>ADVANCED</optimizationLevel>
             </configuration>

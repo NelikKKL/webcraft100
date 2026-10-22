@@ -119,6 +119,6 @@ public class adw extends afs {
       } catch (Exception var3) {
       }
 
-      return afs.class.getResourceAsStream(var1);
+      return net.minecraft.client.web.ResourceIO.getResourceAsStream(var1);
    }
 }

@@ -11,7 +11,7 @@ public class age {
       String var0 = "";
 
       try {
-         BufferedReader var1 = new BufferedReader(new InputStreamReader(age.class.getResourceAsStream("/font.txt"), "UTF-8"));
+         BufferedReader var1 = new BufferedReader(new InputStreamReader(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/font.txt"), "UTF-8"));
          String var2 = "";
 
          while((var2 = var1.readLine()) != null) {

@@ -54,7 +54,7 @@ public class lt extends xe {
          try {
             String var1 = "";
             String var2 = "§f§k§a§b";
-            BufferedReader var3 = new BufferedReader(new InputStreamReader(lt.class.getResourceAsStream("/title/win.txt"), Charset.forName("UTF-8")));
+            BufferedReader var3 = new BufferedReader(new InputStreamReader(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/title/win.txt"), Charset.forName("UTF-8")));
 
             for(Random var4 = new Random(8124371L); (var1 = var3.readLine()) != null; this.b.add(var1)) {
                String var6;
@@ -74,7 +74,7 @@ public class lt extends xe {
                this.b.add("");
             }
 
-            for(BufferedReader var14 = new BufferedReader(new InputStreamReader(lt.class.getResourceAsStream("/title/credits.txt"), Charset.forName("UTF-8"))); (var1 = var14.readLine()) != null; this.b.add(var1)) {
+            for(BufferedReader var14 = new BufferedReader(new InputStreamReader(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/title/credits.txt"), Charset.forName("UTF-8"))); (var1 = var14.readLine()) != null; this.b.add(var1)) {
                var1 = var1.replaceAll("PLAYERNAME", this.l.k.b);
                var1 = var1.replaceAll("\t", "    ");
                if (var1.length() == 0) {

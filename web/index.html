@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Minecraft Alpha 1.2.6 — web port</title>
+<title>Minecraft 1.0.0 — web port</title>
 <style>
   html, body {
     margin: 0; padding: 0; overflow: hidden;
@@ -155,7 +155,7 @@
 
   <!-- akrile — собственный формат архива вместо zip/JSZip (см. TODO.md).
        Вся библиотека (JS-обвязка + WASM в base64) — один файл akrile.js.
-       ES-модуль: инициализация и вызов window.main() ниже, после alpha126.js. -->
+       ES-модуль: инициализация и вызов window.main() ниже, после mc100.js. -->
 
   <script>
     (function () {
@@ -228,9 +228,9 @@
 
   <!-- Текстур-паки (.zip): разбор архива, IndexedDB, drag&drop — см. extras.js -->
   <script src="extras.js"></script>
-  <script src="alpha126.js"></script>
+  <script src="mc100.js"></script>
   <script type="module">
-    // ВАЖНО: alpha126.js — UMD-модуль. В браузерном контексте (нет AMD/
+    // ВАЖНО: mc100.js — UMD-модуль. В браузерном контексте (нет AMD/
     // CommonJS) он делает `self.main = <точка входа>` — то есть просто
     // ПРИСВАИВАЕТ функцию глобальному window.main, но НЕ вызывает её сама.
     // Без этого явного вызова игра никогда не стартует — весь остальной

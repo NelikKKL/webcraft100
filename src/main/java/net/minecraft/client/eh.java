@@ -22,7 +22,7 @@ public class eh extends xe {
    public eh() {
       try {
          ArrayList var1 = new ArrayList();
-         BufferedReader var2 = new BufferedReader(new InputStreamReader(eh.class.getResourceAsStream("/title/splashes.txt"), Charset.forName("UTF-8")));
+         BufferedReader var2 = new BufferedReader(new InputStreamReader(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/title/splashes.txt"), Charset.forName("UTF-8")));
          String var3 = "";
 
          while((var3 = var2.readLine()) != null) {

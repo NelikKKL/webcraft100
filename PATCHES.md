@@ -32,3 +32,9 @@
   хост-режим на net.minecraft.server.MinecraftServer из серверного jar (классы сервера в отдельный пакет).
 * Список текстур-паков (adk) должен включать TexturePackStore.list().
 * glTexGen (портал Края), мультитекстура, Snooper (rx) — заглушки.
+
+## Headless-проверка (tools/smoke)
+* smoke.py <секунды> <папка сайта> — открывает сборку в headless Chromium (SwiftShader), печатает консоль и краш-лог.
+* trace-exceptions.py — ловит исключения через CDP и переводит JS-стек в строки Java по mc100.js.map.
+Найдено и исправлено: `index.html` грузил alpha126.js; TeaVM генерировал `d--0.0` из `-0.0F` (k.java);
+`.lang` декодировался как картинка; Class.getResourceAsStream -> ResourceIO.

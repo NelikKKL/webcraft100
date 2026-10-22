@@ -217,7 +217,7 @@ public class n {
          for(int var42 = 0; var42 < 2; ++var42) {
             int var53 = var42 * 2 - 1;
             GL11.glPushMatrix();
-            GL11.glTranslatef(-0.0F, -0.6F, 1.1F * (float)var53);
+            GL11.glTranslatef(0.0F, -0.6F, 1.1F * (float)var53);
             GL11.glRotatef((float)(-45 * var53), 1.0F, 0.0F, 0.0F);
             GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
             GL11.glRotatef(59.0F, 0.0F, 0.0F, 1.0F);
