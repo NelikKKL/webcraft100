@@ -85,8 +85,21 @@ public final class GLRaw {
     // цвет тумана эмулируем отдельным полем в GLState (см. GL11.glFog(int,FloatBuffer)).
 
     // PATCH(1.0.0): панорама главного меню копирует кадр в текстуру (eh.java)
+    /**
+     * Канвас создан с alpha:false (RGB), а текстура RGBA — прямой copyTexSubImage2D даёт
+     * "Invalid copy texture format combination". Копируем через blitFramebuffer во временный FBO.
+     */
     @JSBody(params = { "gl", "target", "level", "xoffset", "yoffset", "x", "y", "width", "height" }, script =
-        "gl.copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);")
+        "var rfb = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING), dfb = gl.getParameter(gl.DRAW_FRAMEBUFFER_BINDING);" +
+        "var tex = gl.getParameter(gl.TEXTURE_BINDING_2D);" +
+        "var tmp = gl.__copyFbo || (gl.__copyFbo = gl.createFramebuffer());" +
+        "gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, tmp);" +
+        "gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, level);" +
+        "var sc = gl.isEnabled(gl.SCISSOR_TEST); if (sc) gl.disable(gl.SCISSOR_TEST);" +
+        "gl.blitFramebuffer(x, y, x + width, y + height, xoffset, yoffset, xoffset + width, yoffset + height, gl.COLOR_BUFFER_BIT, gl.NEAREST);" +
+        "if (sc) gl.enable(gl.SCISSOR_TEST);" +
+        "gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0);" +
+        "gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dfb); gl.bindFramebuffer(gl.READ_FRAMEBUFFER, rfb);")
     public static native void copyTexSubImage2D(WebGL2 gl, int target, int level,
                                                 int xoffset, int yoffset, int x, int y,
                                                 int width, int height);

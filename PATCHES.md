@@ -45,3 +45,10 @@
   ПОЛЕ (Minecraft.c = PlayerController) и код компилировался. Все `X.` где X — и класс, и поле экземпляра
   (в т.ч. унаследованное), заменены на полное имя (3 места, в т.ч. Minecraft.x(): `c.b()` -> AABB-пул).
   Случаи со статическими полями (311) проверены эвристикой на конфликт членов: реальных нет.
+* GLRaw.copyTexSubImage2D: канвас alpha:false (RGB), текстура RGBA -> прямой copyTexSubImage2D невалиден (панорама меню
+  рисовалась кубом 256x256 в углу). Копирование через blitFramebuffer во временный FBO.
+* Рефлексия: TeaVM не умеет Constructor.newInstance без регистрации (мобы, тайл-сущности, пакеты, карты).
+  Сгенерирована фабрика Reflect (genreflect.py), 9 мест вызова переведены на неё.
+* netshim/RandomAccessFile: региональные файлы (as.java) работают в памяти; на ФС пишутся при close() и
+  WorldStore.flush() -> RandomAccessFile.syncAll(). RandomAccessFile TeaVM поверх виртуальной ФС падал.
+* tools/smoke/click-through.py — сценарий кликов ("click x y;wait s;shot name") для проверки меню/создания мира.

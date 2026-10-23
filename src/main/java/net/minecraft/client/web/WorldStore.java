@@ -230,6 +230,7 @@ public final class WorldStore {
 
     public static void flush() {
         if (!enabled) return;
+        net.minecraft.client.netshim.RandomAccessFile.syncAll();   // региональные файлы живут в памяти (см. шим)
         scan(true);
         if (!hasPending()) return;
         try {

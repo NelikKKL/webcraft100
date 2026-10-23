@@ -22,7 +22,7 @@ public class afw {
       try {
          Class var3 = (Class)a.get(var0);
          if (var3 != null) {
-            var2 = (ia)var3.getConstructor(ry.class).newInstance(var1);
+            var2 = (ia)net.minecraft.client.Reflect.newWorld(var3, var1);
          }
       } catch (Exception var4) {
          var4.printStackTrace();
@@ -37,7 +37,7 @@ public class afw {
       try {
          Class var3 = (Class)a.get(var0.i("id"));
          if (var3 != null) {
-            var2 = (ia)var3.getConstructor(ry.class).newInstance(var1);
+            var2 = (ia)net.minecraft.client.Reflect.newWorld(var3, var1);
          }
       } catch (Exception var4) {
          var4.printStackTrace();
@@ -58,7 +58,7 @@ public class afw {
       try {
          Class var3 = (Class)c.get(var0);
          if (var3 != null) {
-            var2 = (ia)var3.getConstructor(ry.class).newInstance(var1);
+            var2 = (ia)net.minecraft.client.Reflect.newWorld(var3, var1);
          }
       } catch (Exception var4) {
          var4.printStackTrace();

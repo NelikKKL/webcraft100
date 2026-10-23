@@ -67,7 +67,7 @@ public class mr extends ba {
 
    public bq j_() {
       try {
-         return (bq)this.a.newInstance();
+         return (bq)net.minecraft.client.Reflect.newEmpty(this.a);
       } catch (Exception var2) {
          throw new RuntimeException(var2);
       }

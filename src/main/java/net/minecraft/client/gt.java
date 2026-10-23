@@ -39,7 +39,7 @@ public abstract class gt {
    public static gt a(int var0) throws java.io.IOException {
       try {
          Class var1 = (Class)j.a(var0);
-         return var1 == null ? null : (gt)var1.newInstance();
+         return var1 == null ? null : (gt)net.minecraft.client.Reflect.newEmpty(var1);
       } catch (Exception var2) {
          var2.printStackTrace();
          System.out.println("Skipping packet with id " + var0);

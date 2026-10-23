@@ -86,7 +86,7 @@ public final class we {
 
                                        nq var40;
                                        try {
-                                          var40 = (nq)var21.a.getConstructor(ry.class).newInstance(var0);
+                                          var40 = (nq)net.minecraft.client.Reflect.newWorld(var21.a, var0);
                                        } catch (Exception var30) {
                                           var30.printStackTrace();
                                           return var31;
@@ -161,7 +161,7 @@ public final class we {
 
                      nq var21;
                      try {
-                        var21 = (nq)var8.a.getConstructor(ry.class).newInstance(var0);
+                        var21 = (nq)net.minecraft.client.Reflect.newWorld(var8.a, var0);
                      } catch (Exception var23) {
                         var23.printStackTrace();
                         continue;

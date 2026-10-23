@@ -35,7 +35,7 @@ public class ew {
                File var4 = this.a.a(var2);
                if (var4 != null && var4.exists()) {
                   try {
-                     var3 = (afz)var1.getConstructor(String.class).newInstance(var2);
+                     var3 = (afz)net.minecraft.client.Reflect.newString(var1, var2);
                   } catch (Exception var7) {
                      throw new RuntimeException("Failed to instantiate " + var1.toString(), var7);
                   }

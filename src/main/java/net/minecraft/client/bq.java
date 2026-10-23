@@ -50,7 +50,7 @@ public class bq {
       try {
          Class var2 = (Class)a.get(var0.i("id"));
          if (var2 != null) {
-            var1 = (bq)var2.newInstance();
+            var1 = (bq)net.minecraft.client.Reflect.newEmpty(var2);
          }
       } catch (Exception var3) {
          var3.printStackTrace();
