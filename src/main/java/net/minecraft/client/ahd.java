@@ -16,7 +16,7 @@ public class ahd extends aeo {
    public void c() {
       super.c();
       if (this.h == null && !this.aB() && this.o.w.nextInt(100) == 0) {
-         List var1 = this.o.a(zo.class, c.b(this.s, this.t, this.u, this.s + (double)1.0F, this.t + (double)1.0F, this.u + (double)1.0F).b((double)16.0F, (double)4.0F, (double)16.0F));
+         List var1 = this.o.a(zo.class, net.minecraft.client.c.b(this.s, this.t, this.u, this.s + (double)1.0F, this.t + (double)1.0F, this.u + (double)1.0F).b((double)16.0F, (double)4.0F, (double)16.0F));
          if (!var1.isEmpty()) {
             this.a((ia)var1.get(this.o.w.nextInt(var1.size())));
          }

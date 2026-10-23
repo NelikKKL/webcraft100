@@ -441,7 +441,7 @@ public abstract class Minecraft implements Runnable {
       if (this.B != null && !this.B.isActive()) {
          this.L = false;
       } else {
-         c.b();
+         net.minecraft.client.c.b();
          fb.b();
          pf.a("root");
          if (this.m == null && Display.isCloseRequested()) {
@@ -569,7 +569,7 @@ public abstract class Minecraft implements Runnable {
 
       try {
          System.gc();
-         c.a();
+         net.minecraft.client.c.a();
          fb.a();
       } catch (Throwable var3) {
       }
