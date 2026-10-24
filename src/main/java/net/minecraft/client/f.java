@@ -9,7 +9,7 @@ public class f {
    protected ry a;
    private List[] b = new List[4];
    private zh c;
-   private Random d = new Random();
+   private Random d = new net.minecraft.client.web.JRandom();
 
    public f(ry var1, zh var2) {
       if (var1 != null) {

@@ -13,7 +13,7 @@ public class abe {
    public int b = 8;
    private int e;
    private IntBuffer f = bt.d(1024);
-   public Random c = new Random();
+   public Random c = new net.minecraft.client.web.JRandom();
 
    public abe(ki var1, String var2, zh var3) {
       BufferedImage var4;

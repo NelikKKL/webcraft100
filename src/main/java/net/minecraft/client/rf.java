@@ -6,7 +6,7 @@ public class rf extends bz {
    private float[] d = new float[1024];
 
    protected void a(long var1, int var3, int var4, byte[] var5, double var6, double var8, double var10, float var12, float var13, float var14, int var15, int var16, double var17) {
-      Random var19 = new Random(var1);
+      Random var19 = new net.minecraft.client.web.JRandom(var1);
       double var20 = (double)(var3 * 16 + 8);
       double var22 = (double)(var4 * 16 + 8);
       float var24 = 0.0F;

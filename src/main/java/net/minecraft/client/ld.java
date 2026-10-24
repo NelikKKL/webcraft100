@@ -22,7 +22,7 @@ public class ld extends rh {
    }
 
    public boolean a(ry var1, Random var2, nl var3) {
-      Random var4 = new Random((long)this.a);
+      Random var4 = new net.minecraft.client.web.JRandom((long)this.a);
 
       for(int var5 = 0; var5 <= 4; ++var5) {
          for(int var6 = 3; var6 <= 4; ++var6) {

@@ -121,7 +121,7 @@ public class ado extends acq {
             var5 = (var4 - 0.8F) / 0.2F;
          }
 
-         Random var6 = new Random(432L);
+         Random var6 = new net.minecraft.client.web.JRandom(432L);
          GL11.glDisable(3553);
          GL11.glShadeModel(7425);
          GL11.glEnable(3042);

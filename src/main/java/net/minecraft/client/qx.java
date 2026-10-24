@@ -161,7 +161,7 @@ public class qx extends xe {
       int var13 = var5 + 288 >> 4;
       int var14 = (var4 + 288) % 16;
       int var15 = (var5 + 288) % 16;
-      Random var21 = new Random();
+      Random var21 = new net.minecraft.client.web.JRandom();
 
       for(int var22 = 0; var22 * 16 - var15 < 155; ++var22) {
          float var23 = 0.6F - (float)(var13 + var22) / 25.0F * 0.3F;

@@ -22,13 +22,13 @@ public final class Screenshots {
     }
 
     @JSBody(params = { "name", "w", "h", "rgba" }, script =
-        "var c = document.createElement('canvas'); c.width = w; c.height = h;" +
-        "var g = c.getContext('2d');" +
-        "g.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer), w, h), 0, 0);" +
-        "c.toBlob(function (b) {" +
-        "  var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name;" +
-        "  document.body.appendChild(a); a.click(); document.body.removeChild(a);" +
-        "  setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);" +
+        "var cv = document.createElement('canvas'); cv.width = w; cv.height = h;" +
+        "var ctx2d = cv.getContext('2d');" +
+        "ctx2d.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer), w, h), 0, 0);" +
+        "cv.toBlob(function (blob) {" +
+        "  var link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = name;" +
+        "  document.body.appendChild(link); link.click(); document.body.removeChild(link);" +
+        "  setTimeout(function () { URL.revokeObjectURL(link.href); }, 5000);" +
         "}, 'image/png');")
     private static native void save(String name, int w, int h, Uint8Array rgba);
 }

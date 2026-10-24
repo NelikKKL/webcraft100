@@ -56,7 +56,7 @@ public class adt {
    float f = 0.0F;
    float g = 0.0F;
    float h = 0.0F;
-   private Random ab = new Random();
+   private Random ab = new net.minecraft.client.web.JRandom();
    private int ac = 0;
    float[] i;
    float[] j;

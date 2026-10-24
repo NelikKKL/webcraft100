@@ -189,6 +189,37 @@ public class vh {
          }
       }
 
+      if (var13 == null) {
+         // PATCH(1.0.0): диагностика "Unable to find spawn biome" (на JVM для тех же данных позиция находится)
+         int var19 = 0;
+         int var20 = 0;
+         int var21 = 0;
+         int var22 = 0;
+
+         for(int var23 = 0; var23 < var12.length; ++var23) {
+            int var24 = var12[var23];
+            if (var24 < 0 || var24 > 255) {
+               ++var20;
+            } else if (sr.a[var24] == null) {
+               ++var21;
+            } else if (var4.contains(sr.a[var24])) {
+               ++var22;
+            } else {
+               ++var19;
+            }
+         }
+
+         int var25 = 0;
+
+         for(int var26 = 0; var26 < var4.size(); ++var26) {
+            if (var4.get(var26) == null) {
+               ++var25;
+            }
+         }
+
+         System.out.println("SPAWNDBG len=" + var12.length + " w=" + var10 + " h=" + var11 + " listSize=" + var4.size() + " nullInList=" + var25 + " outOfRange=" + var20 + " nullBiome=" + var21 + " inList=" + var22 + " notInList=" + var19 + " first=" + (var12.length > 0 ? var12[0] : -1));
+      }
+
       return var13;
    }
 

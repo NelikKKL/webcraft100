@@ -1,0 +1,6 @@
+package net.minecraft.client;
+import java.util.Random;
+public class RandCmp { public static void main(String[] a){
+  Random x=new Random(987654321L), y=new net.minecraft.client.web.JRandom(987654321L); int bad=0; int[] c=new int[6];
+  for(int i=0;i<200000;i++){ switch(i%6){case 0:if(x.nextInt()!=y.nextInt()){bad++;c[i%6]++;}break;case 1:if(x.nextInt(1+i%97)!=y.nextInt(1+i%97)){bad++;c[i%6]++;}break;case 2:if(x.nextLong()!=y.nextLong()){bad++;c[i%6]++;}break;case 3:if(x.nextFloat()!=y.nextFloat()){bad++;c[i%6]++;}break;case 4:if(x.nextDouble()!=y.nextDouble()){bad++;c[i%6]++;}break;default:if(x.nextGaussian()!=y.nextGaussian()){bad++;c[i%6]++;}}}
+  System.out.println(java.util.Arrays.toString(c)); System.out.println("JRandom mismatches vs java.util.Random: "+bad);}}

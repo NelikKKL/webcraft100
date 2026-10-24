@@ -288,17 +288,18 @@ public final class Fxaa {
     private static native void unbindScene(WebGL2 gl);
 
     /** Возвращает JS-объект состояния либо null (ошибка компиляции/неполный FBO). */
+    /* PATCH: TeaVM переименовывает параметры скрипта в b..f; локальные v/f затирали параметры (h => WebGLShader). */
     @JSBody(params = { "gl", "vs", "fs", "w", "h" }, script =
         "function sh(t, s) {" +
         "  var x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x);" +
         "  if (!gl.getShaderParameter(x, 35713)) { console.error('FXAA shader: ' + gl.getShaderInfoLog(x)); return null; }" +
         "  return x;" +
         "}" +
-        "var v = sh(35633, vs), f = sh(35632, fs);" +
-        "if (!v || !f) return null;" +
-        "var p = gl.createProgram(); gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);" +
+        "var vsh = sh(35633, vs), fsh = sh(35632, fs);" +
+        "if (!vsh || !fsh) return null;" +
+        "var p = gl.createProgram(); gl.attachShader(p, vsh); gl.attachShader(p, fsh); gl.linkProgram(p);" +
         "if (!gl.getProgramParameter(p, 35714)) { console.error('FXAA link: ' + gl.getProgramInfoLog(p)); return null; }" +
-        "gl.deleteShader(v); gl.deleteShader(f);" +
+        "gl.deleteShader(vsh); gl.deleteShader(fsh);" +
         "var st = {" +
         "  prog: p, vao: gl.createVertexArray(), fbo: gl.createFramebuffer()," +
         "  tex: gl.createTexture(), rb: gl.createRenderbuffer()," +

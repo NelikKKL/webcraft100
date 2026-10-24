@@ -141,7 +141,7 @@ public class adg extends w {
          }
 
          ++var3;
-         int var16 = (int)Math.round((double)100.0F * (double)var3 / (double)var4);
+         int var16 = (int)net.minecraft.client.web.JMath.round((double)100.0F * (double)var3 / (double)var4);
          var5.a(var16);
       }
 
@@ -154,7 +154,7 @@ public class adg extends w {
          a(var7);
          var6.delete();
          ++var2;
-         int var8 = (int)Math.round((double)100.0F * (double)var2 / (double)var3);
+         int var8 = (int)net.minecraft.client.web.JMath.round((double)100.0F * (double)var2 / (double)var3);
          var4.a(var8);
       }
 

@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class yd extends ig {
    static final byte[] a = new byte[]{2, 0, 0, 1, 2, 1};
-   Random b = new Random();
+   Random b = new net.minecraft.client.web.JRandom();
    ry c;
    int[] d = new int[]{0, 0, 0};
    int e = 0;

@@ -9,7 +9,7 @@ public class ahk extends pj {
    private int i;
    private int j;
    private int k;
-   private Random l = new Random();
+   private Random l = new net.minecraft.client.web.JRandom();
    public long b;
    public int[] c = new int[3];
 

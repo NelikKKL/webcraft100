@@ -110,7 +110,7 @@ public class xh extends xe {
             }
 
             this.h = true;
-            long var2 = (new Random()).nextLong();
+            long var2 = (new net.minecraft.client.web.JRandom()).nextLong();
             String var4 = this.c.a();
             if (!me.a(var4)) {
                try {

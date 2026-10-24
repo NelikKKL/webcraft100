@@ -66,7 +66,7 @@ public class ab extends fm {
             }
          }
 
-         this.o.g(2002, (int)Math.round(this.s), (int)Math.round(this.t), (int)Math.round(this.u), this.d);
+         this.o.g(2002, (int)net.minecraft.client.web.JMath.round(this.s), (int)net.minecraft.client.web.JMath.round(this.t), (int)net.minecraft.client.web.JMath.round(this.u), this.d);
          this.v();
       }
 

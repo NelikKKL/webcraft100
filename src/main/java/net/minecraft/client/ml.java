@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class ml {
-   private static final Random a = new Random();
+   private static final Random a = new net.minecraft.client.web.JRandom();
    private static final cp b = new cp((qt)null);
    private static final aen c = new aen((qt)null);
 

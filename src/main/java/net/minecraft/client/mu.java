@@ -12,7 +12,7 @@ public class mu extends al {
       this.g.a(-8.0F, -8.0F, -8.0F, 16, 16, 16);
       acf var10000 = this.g;
       var10000.d += (float)(24 + var1);
-      Random var2 = new Random(1660L);
+      Random var2 = new net.minecraft.client.web.JRandom(1660L);
 
       for(int var3 = 0; var3 < this.h.length; ++var3) {
          this.h[var3] = new acf(this, 0, 0);

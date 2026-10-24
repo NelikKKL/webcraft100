@@ -1015,23 +1015,23 @@ public abstract class vi extends nq {
    public void j(double var1, double var3, double var5) {
       if (this.n == null) {
          if (this.a((p)net.minecraft.client.p.g)) {
-            int var7 = Math.round(me.a(var1 * var1 + var3 * var3 + var5 * var5) * 100.0F);
+            int var7 = net.minecraft.client.web.JMath.round(me.a(var1 * var1 + var3 * var3 + var5 * var5) * 100.0F);
             if (var7 > 0) {
                this.a(ny.q, var7);
                this.g(0.015F * (float)var7 * 0.01F);
             }
          } else if (this.D()) {
-            int var8 = Math.round(me.a(var1 * var1 + var5 * var5) * 100.0F);
+            int var8 = net.minecraft.client.web.JMath.round(me.a(var1 * var1 + var5 * var5) * 100.0F);
             if (var8 > 0) {
                this.a(ny.m, var8);
                this.g(0.015F * (float)var8 * 0.01F);
             }
          } else if (this.ah()) {
             if (var3 > (double)0.0F) {
-               this.a(ny.o, (int)Math.round(var3 * (double)100.0F));
+               this.a(ny.o, (int)net.minecraft.client.web.JMath.round(var3 * (double)100.0F));
             }
          } else if (this.D) {
-            int var9 = Math.round(me.a(var1 * var1 + var5 * var5) * 100.0F);
+            int var9 = net.minecraft.client.web.JMath.round(me.a(var1 * var1 + var5 * var5) * 100.0F);
             if (var9 > 0) {
                this.a(ny.l, var9);
                if (this.X()) {
@@ -1041,7 +1041,7 @@ public abstract class vi extends nq {
                }
             }
          } else {
-            int var10 = Math.round(me.a(var1 * var1 + var5 * var5) * 100.0F);
+            int var10 = net.minecraft.client.web.JMath.round(me.a(var1 * var1 + var5 * var5) * 100.0F);
             if (var10 > 25) {
                this.a(ny.p, var10);
             }
@@ -1052,7 +1052,7 @@ public abstract class vi extends nq {
 
    private void k(double var1, double var3, double var5) {
       if (this.n != null) {
-         int var7 = Math.round(me.a(var1 * var1 + var3 * var3 + var5 * var5) * 100.0F);
+         int var7 = net.minecraft.client.web.JMath.round(me.a(var1 * var1 + var3 * var3 + var5 * var5) * 100.0F);
          if (var7 > 0) {
             if (this.n instanceof vm) {
                this.a(ny.r, var7);
@@ -1074,7 +1074,7 @@ public abstract class vi extends nq {
    protected void c(float var1) {
       if (!this.cc.c) {
          if (var1 >= 2.0F) {
-            this.a(ny.n, (int)Math.round((double)var1 * (double)100.0F));
+            this.a(ny.n, (int)net.minecraft.client.web.JMath.round((double)var1 * (double)100.0F));
          }
 
          super.c(var1);

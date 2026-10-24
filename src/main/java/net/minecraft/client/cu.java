@@ -3,7 +3,7 @@ package net.minecraft.client;
 import java.util.Random;
 
 public class cu extends ba {
-   private Random a = new Random();
+   private Random a = new net.minecraft.client.web.JRandom();
 
    protected cu(int var1) {
       super(var1, net.minecraft.client.p.e);

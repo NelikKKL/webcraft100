@@ -12,7 +12,7 @@ public class ln extends bz {
       double var21 = (double)(var4 * 16 + 8);
       float var23 = 0.0F;
       float var24 = 0.0F;
-      Random var25 = new Random(var1);
+      Random var25 = new net.minecraft.client.web.JRandom(var1);
       if (var16 <= 0) {
          int var26 = this.a * 16 - 16;
          var16 = var26 - var25.nextInt(var26 / 4);

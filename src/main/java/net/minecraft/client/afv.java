@@ -117,7 +117,7 @@ public class afv implements bd {
    }
 
    private void f() {
-      Random var1 = new Random(10842L);
+      Random var1 = new net.minecraft.client.web.JRandom(10842L);
       cv var2 = cv.a;
       var2.b();
 

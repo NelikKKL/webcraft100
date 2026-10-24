@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 public class acy {
-   protected static Random c = new Random();
+   protected static Random c = new net.minecraft.client.web.JRandom();
    public static acy[] d = new acy[32000];
    public static acy e;
    public static acy f;

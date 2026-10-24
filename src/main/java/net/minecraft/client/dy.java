@@ -3,7 +3,7 @@ package net.minecraft.client;
 import java.util.Random;
 
 public class dy {
-   private static Random s = new Random();
+   private static Random s = new net.minecraft.client.web.JRandom();
    public double a;
    public double b;
    public double c;

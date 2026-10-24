@@ -125,7 +125,7 @@ public class bs extends ia {
             if (this.f) {
                this.o.a((ia)(new ih(this.o, this.s, this.t, this.u, new dk(acy.bz))));
             } else {
-               this.o.g(2003, (int)Math.round(this.s), (int)Math.round(this.t), (int)Math.round(this.u), 0);
+               this.o.g(2003, (int)net.minecraft.client.web.JMath.round(this.s), (int)net.minecraft.client.web.JMath.round(this.t), (int)net.minecraft.client.web.JMath.round(this.u), 0);
             }
          }
       }

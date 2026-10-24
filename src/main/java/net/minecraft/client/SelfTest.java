@@ -13,9 +13,12 @@ public final class SelfTest {
     public static String run() {
         StringBuilder sb = new StringBuilder();
         try {
-            Random r = new Random(1L);
+            Random r = new net.minecraft.client.web.JRandom(1L);
             sb.append("SELFTEST random ").append(r.nextInt(100)).append(' ').append(r.nextInt(100)).append(' ')
               .append(r.nextInt(100)).append(' ').append(r.nextLong()).append(' ').append(r.nextDouble()).append('\n');
+
+            Random tr = new Random(1L);
+            sb.append("SELFTEST tvmRandom ").append(tr.nextInt(100)).append(" (JVM=85, JRandom used by the game)\n");
 
             long x = 1L;
             for (int i = 0; i < 4; i++) { x *= x * 6364136223846793005L + 1442695040888963407L; x += 7L; }
@@ -27,7 +30,7 @@ public final class SelfTest {
             float f = ((float) d + 0.5F) / 24000.0F - 0.25F;
             sb.append("SELFTEST time ").append(d).append(' ').append(f).append(' ')
               .append((float) Math.cos((double) f * Math.PI * 2.0D)).append(' ')
-              .append(Math.round(-2.5D)).append(' ').append((int) -2.7F).append(' ')
+              .append(net.minecraft.client.web.JMath.round(-2.5D)).append(' ').append((int) -2.7F).append(' ')
               .append((int) Math.floor(-0.5D)).append('\n');
 
             int nulls = 0;

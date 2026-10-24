@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class xp {
    public boolean a = false;
-   private Random h = new Random();
+   private Random h = new net.minecraft.client.web.JRandom();
    private ry i;
    public double b;
    public double c;

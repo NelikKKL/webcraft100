@@ -4,7 +4,7 @@ import java.util.Random;
 import org.lwjgl.opengl.GL11;
 
 public class zv extends rg {
-   private Random a = new Random();
+   private Random a = new net.minecraft.client.web.JRandom();
 
    public void a(tj var1, double var2, double var4, double var6, float var8, float var9) {
       this.a.setSeed(187L);

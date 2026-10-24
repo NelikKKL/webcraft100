@@ -91,7 +91,7 @@ public abstract class ia {
       this.V = 0.0F;
       this.W = false;
       this.X = 0.0F;
-      this.Y = new Random();
+      this.Y = new net.minecraft.client.web.JRandom();
       this.Z = 0;
       this.aa = 1;
       this.c = 0;

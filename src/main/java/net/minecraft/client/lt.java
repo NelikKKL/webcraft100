@@ -56,7 +56,7 @@ public class lt extends xe {
             String var2 = "§f§k§a§b";
             BufferedReader var3 = new BufferedReader(new InputStreamReader(net.minecraft.client.web.ResourceIO.getTextResourceAsStream("/title/win.txt"), Charset.forName("UTF-8")));
 
-            for(Random var4 = new Random(8124371L); (var1 = var3.readLine()) != null; this.b.add(var1)) {
+            for(Random var4 = new net.minecraft.client.web.JRandom(8124371L); (var1 = var3.readLine()) != null; this.b.add(var1)) {
                String var6;
                String var7;
                for(var1 = var1.replaceAll("PLAYERNAME", this.l.k.b); var1.indexOf(var2) >= 0; var1 = var6 + "§f§k" + "XXXXXXXX".substring(0, var4.nextInt(4) + 3) + var7) {

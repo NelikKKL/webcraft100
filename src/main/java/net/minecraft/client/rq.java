@@ -13,7 +13,7 @@ public class rq extends bq {
    public float o;
    public float p;
    public float q;
-   private static Random r = new Random();
+   private static Random r = new net.minecraft.client.web.JRandom();
 
    public void b() {
       super.b();

@@ -3,7 +3,7 @@ package net.minecraft.client;
 import java.util.Random;
 
 public class aim {
-   private Random a = new Random();
+   private Random a = new net.minecraft.client.web.JRandom();
 
    public void a(ry var1, ia var2) {
       if (var1.y.g != 1) {

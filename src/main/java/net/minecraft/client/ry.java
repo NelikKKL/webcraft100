@@ -81,14 +81,14 @@ public class ry implements kq {
       this.j = new ArrayList();
       this.O = 16777215L;
       this.k = 0;
-      this.l = (new Random()).nextInt();
+      this.l = (new net.minecraft.client.web.JRandom()).nextInt();
       this.m = 1013904223;
       this.r = 0;
       this.s = 0;
       this.t = false;
       this.P = System.currentTimeMillis();
       this.u = 40;
-      this.w = new Random();
+      this.w = new net.minecraft.client.web.JRandom();
       this.x = false;
       this.z = new ArrayList();
       this.R = new ArrayList();
@@ -127,14 +127,14 @@ public class ry implements kq {
       this.j = new ArrayList();
       this.O = 16777215L;
       this.k = 0;
-      this.l = (new Random()).nextInt();
+      this.l = (new net.minecraft.client.web.JRandom()).nextInt();
       this.m = 1013904223;
       this.r = 0;
       this.s = 0;
       this.t = false;
       this.P = System.currentTimeMillis();
       this.u = 40;
-      this.w = new Random();
+      this.w = new net.minecraft.client.web.JRandom();
       this.x = false;
       this.z = new ArrayList();
       this.R = new ArrayList();
@@ -178,14 +178,14 @@ public class ry implements kq {
       this.j = new ArrayList();
       this.O = 16777215L;
       this.k = 0;
-      this.l = (new Random()).nextInt();
+      this.l = (new net.minecraft.client.web.JRandom()).nextInt();
       this.m = 1013904223;
       this.r = 0;
       this.s = 0;
       this.t = false;
       this.P = System.currentTimeMillis();
       this.u = 40;
-      this.w = new Random();
+      this.w = new net.minecraft.client.web.JRandom();
       this.x = false;
       this.z = new ArrayList();
       this.R = new ArrayList();
@@ -235,7 +235,7 @@ public class ry implements kq {
       this.D = true;
       vh var1 = this.a();
       List var2 = var1.a();
-      Random var3 = new Random(this.t());
+      Random var3 = new net.minecraft.client.web.JRandom(this.t());
       am var4 = var1.a(0, 0, 256, var2, var3);
       int var5 = 0;
       int var6 = this.c / 2;
@@ -2402,7 +2402,7 @@ public class ry implements kq {
 
    public void t(int var1, int var2, int var3) {
       byte var4 = 16;
-      Random var5 = new Random();
+      Random var5 = new net.minecraft.client.web.JRandom();
 
       for(int var6 = 0; var6 < 1000; ++var6) {
          int var7 = var1 + this.w.nextInt(var4) - this.w.nextInt(var4);

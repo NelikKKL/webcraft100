@@ -33,7 +33,7 @@ public class xj implements ej {
    public xj(ry var1, long var2, boolean var4) {
       this.s = var1;
       this.t = var4;
-      this.n = new Random(var2);
+      this.n = new net.minecraft.client.web.JRandom(var2);
       this.o = new eb(this.n, 16);
       this.p = new eb(this.n, 16);
       this.q = new eb(this.n, 8);

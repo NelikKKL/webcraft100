@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL11;
 
 public class iw extends rg {
    private acr g = new acr();
-   private Random h = new Random();
+   private Random h = new net.minecraft.client.web.JRandom();
    public boolean a = true;
    public float b = 0.0F;
 
@@ -265,8 +265,8 @@ public class iw extends rg {
          }
 
          if (var3.g()) {
-            int var11 = (int)Math.round((double)13.0F - (double)var3.h() * (double)13.0F / (double)var3.j());
-            int var7 = (int)Math.round((double)255.0F - (double)var3.h() * (double)255.0F / (double)var3.j());
+            int var11 = (int)net.minecraft.client.web.JMath.round((double)13.0F - (double)var3.h() * (double)13.0F / (double)var3.j());
+            int var7 = (int)net.minecraft.client.web.JMath.round((double)255.0F - (double)var3.h() * (double)255.0F / (double)var3.j());
             GL11.glDisable(2896);
             GL11.glDisable(2929);
             GL11.glDisable(3553);

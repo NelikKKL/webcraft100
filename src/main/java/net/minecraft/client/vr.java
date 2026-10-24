@@ -8,7 +8,7 @@ public class vr extends dt {
 
    public vr() {
       super(yy.be.bL);
-      Random var1 = new Random(100L);
+      Random var1 = new net.minecraft.client.web.JRandom(100L);
 
       for(int var2 = 0; var2 < 32; ++var2) {
          for(int var3 = 0; var3 < 16; ++var3) {

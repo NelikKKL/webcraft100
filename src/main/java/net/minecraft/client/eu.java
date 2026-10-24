@@ -3,7 +3,7 @@ package net.minecraft.client;
 import java.util.Random;
 
 public class eu extends ba {
-   private Random a = new Random();
+   private Random a = new net.minecraft.client.web.JRandom();
    private final boolean cb;
    private static boolean cc = false;
 

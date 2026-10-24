@@ -23,7 +23,7 @@ public class abp extends fe {
    private Map k = new HashMap();
    public List c = new ArrayList();
    public int d = 20;
-   Random e = new Random();
+   Random e = new net.minecraft.client.web.JRandom();
 
    public abp(Minecraft var1, String var2, int var3) throws net.minecraft.client.netshim.ConnectException, java.net.UnknownHostException {
       this.h = var1;

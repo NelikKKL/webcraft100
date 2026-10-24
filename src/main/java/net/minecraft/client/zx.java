@@ -732,7 +732,7 @@ public class zx {
    }
 
    public Random a(long var1) {
-      return new Random(this.f.t() + (long)(this.l * this.l * 4987142) + (long)(this.l * 5947611) + (long)(this.m * this.m) * 4392871L + (long)(this.m * 389711) ^ var1);
+      return new net.minecraft.client.web.JRandom(this.f.t() + (long)(this.l * this.l * 4987142) + (long)(this.l * 5947611) + (long)(this.m * this.m) * 4392871L + (long)(this.m * 389711) ^ var1);
    }
 
    public boolean h() {

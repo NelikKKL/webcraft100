@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class ahp extends ba {
-   private Random a = new Random();
+   private Random a = new net.minecraft.client.web.JRandom();
 
    public ahp(int var1) {
       super(var1, net.minecraft.client.p.f);

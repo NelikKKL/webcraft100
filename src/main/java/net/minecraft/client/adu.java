@@ -14,7 +14,7 @@ public class adu extends rg {
       double[] var12 = new double[8];
       double var13 = (double)0.0F;
       double var15 = (double)0.0F;
-      Random var17 = new Random(var1.a);
+      Random var17 = new net.minecraft.client.web.JRandom(var1.a);
 
       for(int var18 = 7; var18 >= 0; --var18) {
          var11[var18] = var13;
@@ -24,7 +24,7 @@ public class adu extends rg {
       }
 
       for(int var45 = 0; var45 < 4; ++var45) {
-         Random var46 = new Random(var1.a);
+         Random var46 = new net.minecraft.client.web.JRandom(var1.a);
 
          for(int var19 = 0; var19 < 3; ++var19) {
             int var20 = 7;

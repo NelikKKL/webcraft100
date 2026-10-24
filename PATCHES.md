@@ -76,3 +76,14 @@
   звуков 1.0.0 (волки, жители, эндермены, еда, ...) — добавить через tools/add-sounds.mjs из оригинальных ресурсов 1.0.0.
 * tools/smoke/gl-call-log.py — запись WebGL-вызовов в headless Chromium (кадр мира: ~417 draw, по одному на quad).
 * Замечено: каждый кадр вызывается texImage2D 16x16 (утечка текстур?) — проверить.
+
+## Результаты SelfTest (TeaVM vs JVM)
+* Совпадают побитно: 64-битный LCG (long), слои биомов (гистограмма seed 1), время суток, float/int-касты, sr.a.
+* НЕ совпадают: java.util.Random TeaVM (seed 1: nextInt(100) = 1, а на JVM 85) — миры отличались бы от настоящих.
+  Заменено на web/JRandom (точная копия OpenJDK; сверено на JVM, 200k значений; расходится только nextGaussian
+  на ~3% из-за Math.log vs StrictMath.log — последний бит). `new Random(` -> `new JRandom(` (55 мест).
+* Math.round(-2.5): TeaVM -3, Java -2 -> web/JMath.round (21 место).
+* JSBody: TeaVM переименовывает параметры скрипта в b..f и подставляет в текст; локальные `var v/f` затирали параметры
+  (Fxaa.create: h стал WebGLShader -> "framebuffer incomplete: Attachment has no width or height").
+  ПРАВИЛО: в @JSBody не использовать однобуквенные локальные имена (a..h). Исправлено в Fxaa, Screenshots.
+* vh.a(): при null печатает `SPAWNDBG ...` (размеры, null/вне диапазона/в списке) для разбора "Unable to find spawn biome".

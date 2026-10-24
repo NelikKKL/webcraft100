@@ -20,8 +20,8 @@ public class dc extends hl {
 
          for(int var5 = 0; var5 < this.g.length; ++var5) {
             double var6 = ((double)1.25F + this.b.nextDouble()) * (double)32.0F;
-            int var8 = (int)Math.round(Math.cos(var3) * var6);
-            int var9 = (int)Math.round(Math.sin(var3) * var6);
+            int var8 = (int)net.minecraft.client.web.JMath.round(Math.cos(var3) * var6);
+            int var9 = (int)net.minecraft.client.web.JMath.round(Math.sin(var3) * var6);
             ArrayList var10 = new ArrayList();
 
             for(sr var14 : this.e) {

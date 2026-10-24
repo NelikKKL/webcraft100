@@ -12,7 +12,7 @@ public class abi extends du {
       float var10 = (float)this.a.k;
       float var11 = (float)this.a.l;
       GL11.glDisable(2896);
-      Random var12 = new Random(31100L);
+      Random var12 = new net.minecraft.client.web.JRandom(31100L);
       float var13 = 0.75F;
 
       for(int var14 = 0; var14 < 16; ++var14) {

@@ -22,7 +22,7 @@ public class a implements ej {
 
    public a(ry var1, long var2) {
       this.m = var1;
-      this.i = new Random(var2);
+      this.i = new net.minecraft.client.web.JRandom(var2);
       this.j = new eb(this.i, 16);
       this.k = new eb(this.i, 16);
       this.l = new eb(this.i, 8);

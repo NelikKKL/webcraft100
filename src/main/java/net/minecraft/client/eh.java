@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
 
 public class eh extends xe {
-   private static final Random a = new Random();
+   private static final Random a = new net.minecraft.client.web.JRandom();
    private float b = 0.0F;
    private String c = "missingno";
    private ct d;

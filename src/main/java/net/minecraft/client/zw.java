@@ -6,7 +6,7 @@ import org.lwjgl.util.glu.GLU;
 
 public class zw extends mg {
    private static uj w = new uj();
-   private Random x = new Random();
+   private Random x = new net.minecraft.client.web.JRandom();
    private ahk y;
    public int g;
    public float h;

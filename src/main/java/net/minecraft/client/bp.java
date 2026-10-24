@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class bp extends bq implements de {
    private dk[] a = new dk[9];
-   private Random b = new Random();
+   private Random b = new net.minecraft.client.web.JRandom();
 
    public int c() {
       return 9;

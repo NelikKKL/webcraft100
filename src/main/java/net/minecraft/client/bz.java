@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class bz {
    protected int a = 8;
-   protected Random b = new Random();
+   protected Random b = new net.minecraft.client.web.JRandom();
    protected ry c;
 
    public void a(ej var1, ry var2, int var3, int var4, byte[] var5) {

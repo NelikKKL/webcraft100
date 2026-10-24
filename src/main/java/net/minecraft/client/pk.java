@@ -268,9 +268,9 @@ public class pk {
                   } else {
                      var8 = 1200 * (var8 * 3 + (var8 - 1) * 2);
                      var8 >>= var9;
-                     var8 = (int)Math.round((double)var8 * var6.g());
+                     var8 = (int)net.minecraft.client.web.JMath.round((double)var8 * var6.g());
                      if ((var0 & 16384) != 0) {
-                        var8 = (int)Math.round((double)var8 * (double)0.75F + (double)0.5F);
+                        var8 = (int)net.minecraft.client.web.JMath.round((double)var8 * (double)0.75F + (double)0.5F);
                      }
                   }
 

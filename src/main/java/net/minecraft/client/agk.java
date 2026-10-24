@@ -9,7 +9,7 @@ public class agk extends cs {
    public double c;
 
    public agk() {
-      this(new Random());
+      this(new net.minecraft.client.web.JRandom());
    }
 
    public agk(Random var1) {

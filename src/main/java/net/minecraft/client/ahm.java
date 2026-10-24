@@ -18,7 +18,7 @@ import net.minecraft.client.web.Sfx;
 public class ahm {
 
    private ki f;
-   private final Random h = new Random();
+   private final Random h = new net.minecraft.client.web.JRandom();
    private int i = this.h.nextInt(12000);
 
    public ahm() {

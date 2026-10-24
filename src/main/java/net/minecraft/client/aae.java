@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL11;
 
 public class aae extends acq {
    private ta a;
-   private Random b = new Random();
+   private Random b = new net.minecraft.client.web.JRandom();
 
    public aae() {
       super(new ta(), 0.5F);

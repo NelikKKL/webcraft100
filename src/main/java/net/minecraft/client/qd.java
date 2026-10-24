@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11;
 public class qd extends ht {
    private static iw d = new iw();
    private List e = new ArrayList();
-   private Random f = new Random();
+   private Random f = new net.minecraft.client.web.JRandom();
    private Minecraft g;
    public String a = null;
    private int h = 0;
