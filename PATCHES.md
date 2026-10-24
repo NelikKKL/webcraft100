@@ -67,3 +67,12 @@
 
 ## Открыто
 * "Unable to find spawn biome" в браузере (на JVM спавн-биом находится) и NPE `a is null` — разобрать после сборки.
+
+## Диагностика (этап: мир создаётся, но рендер/биомы неверны)
+* hs.b(): `this.c.getWidth()` падал (компонент-родитель null) -> центр берётся из Display (краш "reading 'dg'": dg = Canvas.getWidth).
+* SelfTest (запуск в WebEntryPoint после init) печатает в консоль строки `SELFTEST ...`; эталон с JVM —
+  tools/smoke/selftest-jvm-reference.txt. Расхождение укажет на TeaVM-специфичную арифметику.
+* assets.akrile пересобран со звуками из Alpha-архива (`--sounds=`): 142 файла; в Alpha-наборе нет 42 из 88 имён
+  звуков 1.0.0 (волки, жители, эндермены, еда, ...) — добавить через tools/add-sounds.mjs из оригинальных ресурсов 1.0.0.
+* tools/smoke/gl-call-log.py — запись WebGL-вызовов в headless Chromium (кадр мира: ~417 draw, по одному на quad).
+* Замечено: каждый кадр вызывается texImage2D 16x16 (утечка текстур?) — проверить.

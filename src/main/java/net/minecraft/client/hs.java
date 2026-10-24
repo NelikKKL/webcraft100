@@ -5,6 +5,7 @@ import java.nio.IntBuffer;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 public class hs {
    private Component c;
@@ -35,7 +36,8 @@ public class hs {
    }
 
    public void b() {
-      Mouse.setCursorPosition(this.c.getWidth() / 2, this.c.getHeight() / 2);
+      // PATCH(1.0.0): компонента-родителя в вебе нет (null) — центр берём у дисплея
+      Mouse.setCursorPosition(Display.getWidth() / 2, Display.getHeight() / 2);
       Mouse.setGrabbed(false);
    }
 

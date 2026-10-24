@@ -1,0 +1,3 @@
+package net.minecraft.client;
+public class SelfTestMain { public static void main(String[] a) throws Exception {
+  net.minecraft.client.web.JvmRes.load(new java.io.File("/tmp/res100")); System.out.println(SelfTest.run()); } }

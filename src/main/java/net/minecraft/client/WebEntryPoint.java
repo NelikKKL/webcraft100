@@ -43,6 +43,9 @@ public final class WebEntryPoint {
             if (minecraft != null) minecraft.saveWorldNow();
         });
 
+        // диагностика расхождений TeaVM/JVM (см. SelfTest)
+        System.out.println(SelfTest.run());
+
         hideLoadingScreen();
 
         while (minecraft.isRunning()) {
