@@ -27,7 +27,7 @@ public class lb extends xe {
    protected void a(ct var1) {
       if (var1.g) {
          if (var1.f == 5) {
-            Sys.openURL("file://" + this.c);
+            // PATCH(1.0.0): открыть папку с паками браузер не может (file:// запрещён)
          } else if (var1.f == 6) {
             this.l.p.b();
             this.l.a(this.a);

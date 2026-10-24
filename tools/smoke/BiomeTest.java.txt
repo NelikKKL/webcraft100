@@ -1,0 +1,19 @@
+package net.minecraft.client;
+
+public class BiomeTest {
+    public static void main(String[] args) throws Exception {
+        net.minecraft.client.web.JvmRes.load(new java.io.File("/tmp/res100"));
+        long[] seeds = {1L, 12345L, -987654321L, 424242L};
+        for (long seed : seeds) {
+            jx[] layers = jx.a(seed);
+            int[] ids = layers[0].a(-64, -64, 129, 129);
+            int[] hist = new int[64];
+            for (int id : ids) hist[id & 63]++;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 64; i++) if (hist[i] > 0) sb.append(i).append(':').append(hist[i]).append(' ');
+            int hits = 0;
+            for (int id : ids) { sr b = sr.a[id]; if (b == sr.f || b == sr.h || b == sr.g) hits++; }
+            System.out.println("seed " + seed + " ids " + sb + " spawnBiomeHits=" + hits);
+        }
+    }
+}

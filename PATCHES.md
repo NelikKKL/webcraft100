@@ -52,3 +52,18 @@
 * netshim/RandomAccessFile: региональные файлы (as.java) работают в памяти; на ФС пишутся при close() и
   WorldStore.flush() -> RandomAccessFile.syncAll(). RandomAccessFile TeaVM поверх виртуальной ФС падал.
 * tools/smoke/click-through.py — сценарий кликов ("click x y;wait s;shot name") для проверки меню/создания мира.
+
+## Архитектура запуска (изменено)
+* Игра идёт в зелёном потоке TeaVM "Game" (WebEntryPoint), между кадрами — Frames.next() (@Async rAF).
+  Причина: любой метод, способный приостановиться (Thread.sleep/wait, контендные synchronized, Thread.start),
+  TeaVM компилирует в корутину; вне потока он падает с "thread is null" (так падал ll.a() при сохранении мира,
+  файловый поток ll/FileIO использует sleep).
+* Экран генерации мира: Minecraft.e() (Building terrain) вызывает Frames.yieldIfDue() — кадр отдаётся браузеру
+  каждые ~30 мс, прогресс xw.a(int) виден. Перед f.r() ("Simulating world") — Frames.next().
+* Скины/плащи с s3.amazonaws.com не качаются (cw.run() пуст) — сервис закрыт и CORS; остаётся /mob/char.png.
+* lb: кнопка "Open texture pack folder" отключена (file:// запрещён браузером).
+* tools/smoke/BiomeTest.java.txt + JvmRes.java.txt — запуск генератора биомов на настоящей JVM для сравнения с TeaVM
+  (на JVM для seed 1: ids 0:2403 2:6075 3:513 5:6927 6:647 7:455 11:99 12:1925; spawnBiomeHits=7574).
+
+## Открыто
+* "Unable to find spawn biome" в браузере (на JVM спавн-биом находится) и NPE `a is null` — разобрать после сборки.

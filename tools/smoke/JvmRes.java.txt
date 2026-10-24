@@ -1,0 +1,33 @@
+package net.minecraft.client.web;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Map;
+
+/** Только для JVM-теста: наполняет ResourceCache файлами из распакованного jar. */
+public class JvmRes {
+    public static void load(File root) throws Exception {
+        java.lang.reflect.Field f = ResourceCache.class.getDeclaredField("cache"); f.setAccessible(true);
+        @SuppressWarnings("unchecked") Map<String, ResourceCache.Entry> cache = (Map<String, ResourceCache.Entry>) f.get(null);
+        java.lang.reflect.Field tf = ResourceCache.class.getDeclaredField("textCache"); tf.setAccessible(true);
+        @SuppressWarnings("unchecked") Map<String, String> text = (Map<String, String>) tf.get(null);
+        java.lang.reflect.Constructor<ResourceCache.Entry> c = ResourceCache.Entry.class.getDeclaredConstructor(int.class, int.class, int[].class); c.setAccessible(true);
+        walk(root, root, cache, text, c);
+    }
+    private static void walk(File root, File d, Map<String, ResourceCache.Entry> cache, Map<String, String> text, java.lang.reflect.Constructor<ResourceCache.Entry> c) throws Exception {
+        for (File x : d.listFiles()) {
+            if (x.isDirectory()) { walk(root, x, cache, text, c); continue; }
+            String rel = "" + root.toPath().relativize(x.toPath()).toString().replace('\\', '/');
+            String n = x.getName().toLowerCase();
+            if (n.endsWith(".png")) {
+                java.awt.image.BufferedImage im = javax.imageio.ImageIO.read(x);
+                if (im == null) continue;
+                int w = im.getWidth(), h = im.getHeight();
+                int[] px = im.getRGB(0, 0, w, h, null, 0, w);
+                cache.put(rel, c.newInstance(w, h, px));
+            } else if (n.endsWith(".txt") || n.endsWith(".lang")) {
+                text.put(rel, new String(Files.readAllBytes(x.toPath()), "UTF-8"));
+            }
+        }
+    }
+}

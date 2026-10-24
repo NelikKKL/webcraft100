@@ -4,7 +4,7 @@ ROOT='/tmp/art'; sm=SM(ROOT+'/mc100.js.map')
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
 socketserver.TCPServer.allow_reuse_address=True
-srv=socketserver.TCPServer(("127.0.0.1",8127),functools.partial(Q,directory=ROOT)); threading.Thread(target=srv.serve_forever,daemon=True).start()
+srv=socketserver.TCPServer(("127.0.0.1",8131),functools.partial(Q,directory=ROOT)); threading.Thread(target=srv.serve_forever,daemon=True).start()
 from playwright.async_api import async_playwright
 FN="function(){var o={};function pick(v,d){var r={};for(var k in v){var w=v[k];if(w===null||typeof w==='function')continue;if(typeof w==='string'||typeof w==='number'||typeof w==='boolean')r[k]=w;else if(d>0&&typeof w==='object'&&!Array.isArray(w))r[k]=pick(w,d-1);}return r;}return JSON.stringify(pick(this,3)).slice(0,2500);}"
 async def main():
@@ -25,12 +25,13 @@ async def main():
             out.append((info,fr[:7]))
             try: await cdp.send("Debugger.resume")
             except Exception: pass
+        logs=[]; pg.on('console',lambda m: logs.append(m.type+': '+m.text[:160])); pg.on('pageerror',lambda e: logs.append('PAGEERR '+str(e)[:200]))
         cdp.on("Debugger.paused",lambda ev: asyncio.ensure_future(handle(ev)))
-        await pg.goto("http://127.0.0.1:8127/index.html"); await asyncio.sleep(12)
-        for (x,y,w) in [(427,236,2),(583,395,3),(266,443,int(sys.argv[1]))]:
-            await pg.mouse.move(x,y); await asyncio.sleep(.8); await pg.mouse.down(); await asyncio.sleep(.5); await pg.mouse.up(); await asyncio.sleep(w)
+        await pg.goto("http://127.0.0.1:8131/index.html"); await asyncio.sleep(14)
+        for (x,y,w) in [(427,236,2),(583,395,1),(583,395,3),(266,443,int(sys.argv[1]))]:
+            await pg.mouse.move(x,y); await asyncio.sleep(2); await pg.mouse.down(); await asyncio.sleep(1); await pg.mouse.up(); await asyncio.sleep(w+3)
         await b.close()
-    print(len(out),'pauses')
+    print(len(out),'pauses'); print('\n'.join(logs[:14]))
     seen={}
     for info,fr in out:
         key=tuple(f[1] for f in fr[:4] if f[1])

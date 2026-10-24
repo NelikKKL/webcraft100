@@ -1472,6 +1472,8 @@ public abstract class Minecraft implements Runnable {
                while(this.f.F()) {
                }
             }
+
+            net.minecraft.client.web.Frames.yieldIfDue(); // PATCH(1.0.0): отдаём кадр браузеру — виден экран "Building terrain"
          }
       }
 
@@ -1479,6 +1481,8 @@ public abstract class Minecraft implements Runnable {
          if (this.t != null) {
             this.t.b("Simulating world for a bit");
          }
+
+         net.minecraft.client.web.Frames.next(); // PATCH(1.0.0): показать надпись до тяжёлого f.r()
 
          var4 = 2000;
          this.f.r();

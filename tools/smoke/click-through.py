@@ -15,7 +15,7 @@ with sync_playwright() as p:
     pg.on("pageerror",lambda e: logs.append("[PAGEERROR] %s"%e))
     pg.goto("http://127.0.0.1:8126/index.html"); time.sleep(12)
     for st in steps:
-        if st[0]=='click': pg.mouse.move(int(st[1]),int(st[2])); time.sleep(.8); pg.mouse.down(); time.sleep(.5); pg.mouse.up(); time.sleep(2.5)
+        if st[0]=='click': pg.mouse.move(int(st[1]),int(st[2])); time.sleep(2); pg.mouse.down(); time.sleep(1); pg.mouse.up(); time.sleep(3)
         elif st[0]=='wait': time.sleep(float(st[1]))
         elif st[0]=='shot': pg.screenshot(path='/tmp/%s.png'%st[1])
         elif st[0]=='type': pg.keyboard.type(' '.join(st[1:]),delay=80); time.sleep(.5)

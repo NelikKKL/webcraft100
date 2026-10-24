@@ -1,8 +1,5 @@
 package net.minecraft.client;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import net.minecraft.client.awtshim.ImageIO;
 
 class cw extends Thread {
    // $FF: synthetic field
@@ -18,30 +15,10 @@ class cw extends Thread {
       this.b = var3;
    }
 
+   /**
+    * PATCH(1.0.0): оригинал скачивал скины/плащи с s3.amazonaws.com — сервис закрыт, а браузер блокирует
+    * запрос (CORS). Остаётся стандартный скин /mob/char.png; пользовательские скины — через web/SkinStore.
+    */
    public void run() {
-      HttpURLConnection var1 = null;
-
-      try {
-         URL var2 = new URL(this.a);
-         var1 = (HttpURLConnection)var2.openConnection();
-         var1.setDoInput(true);
-         var1.setDoOutput(false);
-         var1.connect();
-         if (var1.getResponseCode() / 100 != 4) {
-            if (this.b == null) {
-               this.c.a = ImageIO.read(var1.getInputStream());
-            } else {
-               this.c.a = this.b.a(ImageIO.read(var1.getInputStream()));
-            }
-
-            return;
-         }
-      } catch (Exception var6) {
-         var6.printStackTrace();
-         return;
-      } finally {
-         var1.disconnect();
-      }
-
    }
 }
