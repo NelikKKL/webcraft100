@@ -17,6 +17,10 @@ public final class SelfTest {
             sb.append("SELFTEST random ").append(r.nextInt(100)).append(' ').append(r.nextInt(100)).append(' ')
               .append(r.nextInt(100)).append(' ').append(r.nextLong()).append(' ').append(r.nextDouble()).append('\n');
 
+            sb.append("SELFTEST colormaps grass=").append(Integer.toHexString(ha.a(0.8D, 0.4D)))
+              .append(" foliage=").append(Integer.toHexString(db.a(0.8D, 0.4D)))
+              .append(" (expect non-zero 0xff......)\n");
+
             Random tr = new Random(1L);
             sb.append("SELFTEST tvmRandom ").append(tr.nextInt(100)).append(" (JVM=85, JRandom used by the game)\n");
 

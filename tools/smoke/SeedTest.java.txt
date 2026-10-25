@@ -1,0 +1,13 @@
+package net.minecraft.client;
+public class SeedTest {
+  public static void main(String[] a) throws Exception {
+    net.minecraft.client.web.JvmRes.load(new java.io.File("/tmp/res100"));
+    long[] seeds={0L,1L,2L,-1L,Long.MAX_VALUE,123456789012345L,new java.util.Random().nextLong()};
+    for(long seed:seeds){
+      jx[] l=jx.a(seed); int[] ids=l[0].a(-28,-28,57,57); int[] h=new int[64]; int n=57*57;
+      for(int i=0;i<n;i++) h[ids[i]&63]++;
+      StringBuilder sb=new StringBuilder(); for(int i=0;i<64;i++) if(h[i]>0) sb.append(i+":"+h[i]+" ");
+      System.out.println("seed "+seed+" len="+ids.length+" -> "+sb);
+    }
+  }
+}

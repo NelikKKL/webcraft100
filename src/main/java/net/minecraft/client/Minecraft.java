@@ -437,7 +437,27 @@ public abstract class Minecraft implements Runnable {
 
    }
 
+   private int dbgFrames = 0;
+
+   /** PATCH(1.0.0): диагностика состояния игрока/камеры (раз в ~4 с). */
+   private void dbgState() {
+      try {
+         if (this.f != null && this.h != null && ++this.dbgFrames % 240 == 1) {
+            int var1 = me.c(this.h.s);
+            int var2 = me.c(this.h.t);
+            int var3 = me.c(this.h.u);
+            System.out.println("DBG thirdPerson(E)=" + this.A.E + " sleeping=" + this.h.ar() + " view==player=" + (this.i == this.h)
+               + " pos=" + this.h.s + "," + this.h.t + "," + this.h.u + " yaw=" + this.h.y + " pitch=" + this.h.z
+               + " blocks(feet,head,below)=" + this.f.a(var1, var2, var3) + "," + this.f.a(var1, var2 + 1, var3) + "," + this.f.a(var1, var2 - 1, var3)
+               + " light(full,sky)=" + this.f.m(var1, var2, var3) + "," + this.f.a(bn.a, var1, var2, var3) + " bright=" + this.f.c(var1, var2, var3) + " seed=" + this.f.t() + " time=" + this.f.u() + " hideGui=" + this.A.D + " fov=" + this.A.o + " gamma=" + this.A.m);
+         }
+      } catch (Throwable var4) {
+         System.out.println("DBG error " + var4);
+      }
+   }
+
    public void x() { // PATCH(1.0.0): был private — вызывается из WebMinecraft.runOneFrame()
+      this.dbgState();
       if (this.B != null && !this.B.isActive()) {
          this.L = false;
       } else {
@@ -1419,6 +1439,7 @@ public abstract class Minecraft implements Runnable {
          }
 
          this.i = this.h;
+         this.A.E = 0; // PATCH(1.0.0): новый мир всегда начинается от первого лица (не F5)
       } else {
          this.ad.c();
          this.h = null;
@@ -1570,6 +1591,7 @@ public abstract class Minecraft implements Runnable {
 
       this.h.bK = var2;
       this.i = this.h;
+      this.A.E = 0; // PATCH(1.0.0): новый мир всегда начинается от первого лица (не F5)
       this.h.u();
       if (var6) {
          this.h.a((dh)var4);

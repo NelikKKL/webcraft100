@@ -87,3 +87,13 @@
   (Fxaa.create: h стал WebGLShader -> "framebuffer incomplete: Attachment has no width or height").
   ПРАВИЛО: в @JSBody не использовать однобуквенные локальные имена (a..h). Исправлено в Fxaa, Screenshots.
 * vh.a(): при null печатает `SPAWNDBG ...` (размеры, null/вне диапазона/в списке) для разбора "Unable to find spawn biome".
+
+## Итоги прогона сборки с JRandom/FXAA-фиксом
+* FXAA теперь включается (`FXAA: enabled (854x480)`).
+* "Unable to find spawn biome" / "Placed stronghold in INVALID biome" — штатное поведение ванили для seed, у которого
+  вокруг (0,0) океан: на JVM случайный seed даёт 3249 из 3249 клеток океана (tools/smoke/SeedTest.java.txt). Не баг.
+* Генерация мира на JVM корректна (tools/smoke/WorldTest.java.txt, seed 1): трава (id 2), листва (id 18), skylight 15.
+  Чёрные листва/трава/небо в браузере => проблема рендера/TeaVM, не логики мира. Проверяем: карты цвета биомов
+  (SELFTEST colormaps), яркость/свет/время в DBG-строке.
+* Камера: новый мир всегда стартует от первого лица (A.E = 0) — пользователь видел F5 при старте.
+* "Белая голова": игрок отрисован в виде от третьего лица, текстура модели (fallback /mob/char.png) не накладывается.

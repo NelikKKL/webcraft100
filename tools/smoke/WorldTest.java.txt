@@ -1,0 +1,17 @@
+package net.minecraft.client;
+public class WorldTest {
+  public static void main(String[] a) throws Exception {
+    net.minecraft.client.web.JvmRes.load(new java.io.File("/tmp/res100"));
+    long seed = Long.parseLong(a[0]);
+    adg fmt = new adg(new java.io.File("/tmp/savetest"));
+    nh h = fmt.a("w", false);
+    ry w = new ry(h, "w", new yw(seed, 0, true, false));
+    for (int cx=-2;cx<=2;cx++) for (int cz=-2;cz<=2;cz++) { w.a(cx*16, 64, cz*16); int n=0; while (w.F() && n++<100000) {} }
+    int[][] pts={{0,0},{8,8},{20,5},{-30,17}};
+    for (int[] p: pts) {
+      int top = w.d(p[0],p[1]);
+      System.out.println("col "+p[0]+","+p[1]+" height="+top+" idBelow="+w.a(p[0],top-1,p[1])+" id="+w.a(p[0],top,p[1])
+        +" sky(top)="+w.b(bn.a,p[0],top,p[1])+" blk(top)="+w.b(bn.b,p[0],top,p[1])+" full(top)="+w.m(p[0],top,p[1]));
+    }
+  }
+}
