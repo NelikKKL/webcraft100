@@ -52,13 +52,25 @@ public final class GL11 {
     // ---------------------------------------------------------------
     // Матрицы
     // ---------------------------------------------------------------
-    public static void glMatrixMode(int mode) { GLDispatch.matrixMode(mode); }
-    public static void glLoadIdentity() { GLDispatch.loadIdentity(); }
-    public static void glPushMatrix() { GLDispatch.pushMatrix(); }
-    public static void glPopMatrix() { GLDispatch.popMatrix(); }
-    public static void glTranslatef(float x, float y, float z) { GLDispatch.translatef(x, y, z); }
-    public static void glRotatef(float angle, float x, float y, float z) { GLDispatch.rotatef(angle, x, y, z); }
-    public static void glScalef(float x, float y, float z) { GLDispatch.scalef(x, y, z); }
+        /** true, пока выбран режим GL_TEXTURE на юните 1 (см. glMatrixMode). */
+    private static boolean ignoreMatrix = false;
+
+    public static void glMatrixMode(int mode) {
+        // PATCH(1.0.0): glMatrixMode(GL_TEXTURE) на юните 1 (лайтмап) — игнорируем вместе со всеми матричными вызовами до возврата режима
+        if (mode == 5890 && GL13.activeUnit != 0) { ignoreMatrix = true; return; }
+        ignoreMatrix = false; GLDispatch.matrixMode(mode); }
+    public static void glLoadIdentity() {
+        if (ignoreMatrix) return; GLDispatch.loadIdentity(); }
+    public static void glPushMatrix() {
+        if (ignoreMatrix) return; GLDispatch.pushMatrix(); }
+    public static void glPopMatrix() {
+        if (ignoreMatrix) return; GLDispatch.popMatrix(); }
+    public static void glTranslatef(float x, float y, float z) {
+        if (ignoreMatrix) return; GLDispatch.translatef(x, y, z); }
+    public static void glRotatef(float angle, float x, float y, float z) {
+        if (ignoreMatrix) return; GLDispatch.rotatef(angle, x, y, z); }
+    public static void glScalef(float x, float y, float z) {
+        if (ignoreMatrix) return; GLDispatch.scalef(x, y, z); }
     public static void glOrtho(double l, double r, double b, double t, double n, double f) { s().ortho(l, r, b, t, n, f); }
 
     // ---------------------------------------------------------------
@@ -78,15 +90,19 @@ public final class GL11 {
     // ---------------------------------------------------------------
     // Простое состояние
     // ---------------------------------------------------------------
-    public static void glEnable(int cap) { GLDispatch.enable(cap, true); }
-    public static void glDisable(int cap) { GLDispatch.enable(cap, false); }
+    public static void glEnable(int cap) {
+        if (cap == 3553 && GL13.activeUnit != 0) return; /* PATCH(1.0.0): юнит 1 (лайтмап) не эмулируется */ GLDispatch.enable(cap, true); }
+    public static void glDisable(int cap) {
+        if (cap == 3553 && GL13.activeUnit != 0) return; GLDispatch.enable(cap, false); }
     // GL_VERTEX_ARRAY=32884, GL_NORMAL_ARRAY=32885, GL_COLOR_ARRAY=32886, GL_TEXTURE_COORD_ARRAY=32888.
     // decomp честно включает/выключает клиентские массивы вокруг каждого
     // glDrawArrays (см. is.java) — glDisableClientState обязан реально
     // погасить атрибут (size=0), иначе состояние от предыдущего меша
     // "утечёт" в следующий draw call, где этот атрибут не был переустановлен.
-    public static void glEnableClientState(int cap) { /* сами данные приходят через *Pointer(...) — здесь нечего включать */ }
-    public static void glDisableClientState(int cap) { GLDispatch.disableClientState(cap); }
+    public static void glEnableClientState(int cap) {
+        if (cap == 32888 && GL13.clientUnit != 0) return; /* сами данные приходят через *Pointer(...) — здесь нечего включать */ }
+    public static void glDisableClientState(int cap) {
+        if (cap == 32888 && GL13.clientUnit != 0) return; GLDispatch.disableClientState(cap); }
     public static void glClear(int mask) { GLDispatch.clear(mask); }
     public static void glClearColor(float r, float g, float b, float a) { GLDispatch.clearColor(r, g, b, a); }
     public static void glClearDepth(double depth) { GLDispatch.clearDepth((float) depth); }
@@ -110,15 +126,19 @@ public final class GL11 {
     // ---------------------------------------------------------------
     public static int glGenTextures() { return GLDispatch.genTexture(); }
     public static void glGenTextures(IntBuffer textures) { GLDispatch.genTextures(textures); }
-    public static void glBindTexture(int target, int texture) { GLDispatch.bindTexture(target, texture); }
+    public static void glBindTexture(int target, int texture) {
+        if (GL13.activeUnit != 0) return; GLDispatch.bindTexture(target, texture); }
     public static void glDeleteTextures(int texture) { GLDispatch.deleteTexture(texture); }
     public static void glDeleteTextures(IntBuffer textures) { GLDispatch.deleteTextures(textures); }
-    public static void glTexParameteri(int target, int pname, int param) { GLDispatch.texParameteri(target, pname, param); }
+    public static void glTexParameteri(int target, int pname, int param) {
+        if (GL13.activeUnit != 0) return; GLDispatch.texParameteri(target, pname, param); }
     public static void glPixelStorei(int pname, int param) { GLDispatch.pixelStorei(pname, param); }
     public static void glTexImage2D(int target, int level, int internalFormat, int w, int h, int border, int format, int type, ByteBuffer pixels) {
+        if (GL13.activeUnit != 0) return;
         GLDispatch.texImage2D(target, level, w, h, pixels);
     }
     public static void glTexSubImage2D(int target, int level, int xoff, int yoff, int w, int h, int format, int type, ByteBuffer pixels) {
+        if (GL13.activeUnit != 0) return;
         GLDispatch.texSubImage2D(target, level, xoff, yoff, w, h, pixels);
     }
 
@@ -127,8 +147,10 @@ public final class GL11 {
     // ---------------------------------------------------------------
     public static void glVertexPointer(int size, int stride, FloatBuffer buffer) { GLDispatch.vertexPointerClient(size, stride, buffer); }
     public static void glVertexPointer(int size, int type, int stride, long offset) { GLDispatch.vertexPointerOffset(size, type, stride, offset); }
-    public static void glTexCoordPointer(int size, int stride, FloatBuffer buffer) { GLDispatch.texCoordPointerClient(size, stride, buffer); }
-    public static void glTexCoordPointer(int size, int type, int stride, long offset) { GLDispatch.texCoordPointerOffset(size, type, stride, offset); }
+    public static void glTexCoordPointer(int size, int stride, FloatBuffer buffer) {
+        if (GL13.clientUnit != 0) return; GLDispatch.texCoordPointerClient(size, stride, buffer); }
+    public static void glTexCoordPointer(int size, int type, int stride, long offset) {
+        if (GL13.clientUnit != 0) return; GLDispatch.texCoordPointerOffset(size, type, stride, offset); }
     public static void glColorPointer(int size, boolean unsigned, int stride, ByteBuffer buffer) { GLDispatch.colorPointerClient(size, stride, buffer); }
     public static void glColorPointer(int size, int type, int stride, long offset) { GLDispatch.colorPointerOffset(size, type, stride, offset); }
     public static void glNormalPointer(int stride, ByteBuffer buffer) { GLDispatch.normalPointerClient(stride, buffer); }
