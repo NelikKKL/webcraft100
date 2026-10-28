@@ -27,7 +27,8 @@ public class lb extends xe {
    protected void a(ct var1) {
       if (var1.g) {
          if (var1.f == 5) {
-            // PATCH(1.0.0): открыть папку с паками браузер не может (file:// запрещён)
+            // PATCH(texturepacks): вместо папки — системный выбор .zip (разбор в web/extras.js)
+            net.minecraft.client.web.TexturePackStore.openFilePicker();
          } else if (var1.f == 6) {
             this.l.p.b();
             this.l.a(this.a);
@@ -55,7 +56,7 @@ public class lb extends xe {
 
       qp var4 = qp.a();
       this.a(this.q, var4.a("texturePack.title"), this.m / 2, 16, 16777215);
-      this.a(this.q, var4.a("texturePack.folderInfo"), this.m / 2 - 77, this.n - 26, 8421504);
+      this.a(this.q, "Or drop a .zip file onto the window", this.m / 2 - 77, this.n - 26, 8421504);
       super.a(var1, var2, var3);
    }
 

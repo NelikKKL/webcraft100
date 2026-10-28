@@ -1,0 +1,32 @@
+import java.util.Random;
+import net.minecraft.client.web.JRandom;
+public class Check {
+    public static void main(String[] a) {
+        long[] seeds = {0L, 1L, -1L, 42L, 123456789012345L, Long.MAX_VALUE, Long.MIN_VALUE, 8682522807148012L, 0xFFFFFFFFFFFFL};
+        int bad = 0; long total = 0;
+        int[] bounds = {1, 2, 3, 5, 7, 8, 10, 16, 100, 255, 256, 1000, 4096, 65536, 1<<20, (1<<30), Integer.MAX_VALUE, 12345678};
+        for (long seed : seeds) {
+            Random r = new Random(seed); JRandom j = new JRandom(seed);
+            for (int i = 0; i < 400000; i++) {
+                int k = i % 8; total++;
+                boolean ok = true;
+                switch (k) {
+                    case 0: ok = r.nextInt() == j.nextInt(); break;
+                    case 1: { int b = bounds[i % bounds.length]; ok = r.nextInt(b) == j.nextInt(b); break; }
+                    case 2: ok = Double.doubleToLongBits(r.nextDouble()) == Double.doubleToLongBits(j.nextDouble()); break;
+                    case 3: ok = Float.floatToIntBits(r.nextFloat()) == Float.floatToIntBits(j.nextFloat()); break;
+                    case 4: ok = r.nextBoolean() == j.nextBoolean(); break;
+                    case 5: ok = r.nextLong() == j.nextLong(); break;
+                    case 6: { byte[] x = new byte[7], y = new byte[7]; r.nextBytes(x); j.nextBytes(y); ok = java.util.Arrays.equals(x, y); break; }
+                    case 7: { r.setSeed(seed + i); j.setSeed(seed + i); ok = r.nextInt() == j.nextInt(); break; }
+                }
+                if (!ok) { if (bad++ < 5) System.out.println("MISMATCH seed=" + seed + " i=" + i + " k=" + k); }
+            }
+        }
+        System.out.println("checked " + total + " mismatches=" + bad);
+        // скорость (на JVM, для справки)
+        JRandom j = new JRandom(1); long t = System.nanoTime(); int acc = 0;
+        for (int i = 0; i < 20000000; i++) acc += j.nextInt(100);
+        System.out.println("new JRandom 20M nextInt: " + (System.nanoTime() - t) / 1000000 + " ms (" + acc + ")");
+    }
+}

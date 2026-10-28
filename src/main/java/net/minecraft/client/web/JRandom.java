@@ -14,7 +14,16 @@ public class JRandom extends Random {
     private static final long MASK = (1L << 48) - 1;
     private static long uniquifier = 8682522807148012L;
 
-    private long seed;
+    // PATCH(perf): 48-битное состояние хранится как два 24-битных int (sh:sl), шаг LCG считается в double
+    // (все промежуточные значения < 2^53 — точно). В TeaVM long-арифметика эмулируется и медленна, а Random
+    // дёргается миллионы раз при генерации чанков. Результат побитно совпадает с java.util.Random (см. tools/smoke/JRandomCheck).
+    private static final double TWO24 = 16777216.0;
+    private static final double INV24 = 1.0 / 16777216.0;
+    private static final int MUL_HI = 0x5DE;      // MULTIPLIER >> 24
+    private static final int MUL_LO = 0xECE66D;   // MULTIPLIER & 0xFFFFFF
+
+    private int seedHi;   // биты 47..24
+    private int seedLo;   // биты 23..0
     private double nextNextGaussian;
     private boolean haveNextNextGaussian;
 
@@ -34,14 +43,25 @@ public class JRandom extends Random {
 
     @Override
     public void setSeed(long s) {
-        this.seed = (s ^ MULTIPLIER) & MASK;
+        long v = (s ^ MULTIPLIER) & MASK;
+        this.seedHi = (int) (v >>> 24);
+        this.seedLo = (int) (v & 0xFFFFFFL);
         this.haveNextNextGaussian = false;
     }
 
     @Override
     protected int next(int bits) {
-        seed = (seed * MULTIPLIER + ADDEND) & MASK;
-        return (int) (seed >>> (48 - bits));
+        // seed = (seed * MULTIPLIER + 0xB) & (2^48 - 1)
+        double p0 = (double) seedLo * MUL_LO + 11.0;                  // < 2^48 + 11
+        double carry = Math.floor(p0 * INV24);                        // p0 >> 24
+        int newLo = (int) (p0 - carry * TWO24);                       // p0 & 0xFFFFFF
+        double p1 = (double) seedHi * MUL_LO + (double) seedLo * MUL_HI + carry;
+        int newHi = (int) (p1 - Math.floor(p1 * INV24) * TWO24);      // p1 & 0xFFFFFF
+        seedLo = newLo;
+        seedHi = newHi;
+        // (int) (seed >>> (48 - bits))
+        if (bits <= 24) return newHi >>> (24 - bits);
+        return (newHi << (bits - 24)) | (newLo >>> (48 - bits));
     }
 
     @Override
@@ -55,7 +75,8 @@ public class JRandom extends Random {
         int r = next(31);
         int m = bound - 1;
         if ((bound & m) == 0) {
-            r = (int) ((bound * (long) r) >> 31);
+            // (bound * (long) r) >> 31 для степени двойки = r >> (31 - log2(bound))
+            r = r >> (31 - Integer.numberOfTrailingZeros(bound));
         } else {
             for (int u = r; u - (r = u % bound) + m < 0; u = next(31)) {
             }
@@ -80,7 +101,7 @@ public class JRandom extends Random {
 
     @Override
     public double nextDouble() {
-        return (((long) next(26) << 27) + next(27)) * (1.0 / (1L << 53));
+        return ((double) next(26) * 134217728.0 + (double) next(27)) * (1.0 / 9007199254740992.0);
     }
 
     @Override

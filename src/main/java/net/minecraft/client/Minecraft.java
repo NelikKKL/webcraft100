@@ -492,6 +492,7 @@ public abstract class Minecraft implements Runnable {
          }
 
          pf.b();
+         net.minecraft.client.web.ChunkPreloader.step(this); // PATCH(perf): подгрузка чанков по одному за кадр
          long var7 = System.nanoTime() - var6;
          this.d("Pre render");
          acr.b = this.A.j;

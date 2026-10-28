@@ -74,6 +74,20 @@ public final class GLRaw {
         "gl.bufferData(target, size, usage);")
     public static native void bufferDataCapacity(WebGL2 gl, int target, int size, int usage);
 
+    // PATCH(perf): индексы квадов (0,1,2, 0,2,3 на каждые 4 вершины) прямо в JS — Uint32Array, без перегонки из Java.
+    // (в @JSBody нет однобуквенных локальных имён — см. PATCHES.md)
+    @JSBody(params = { "gl", "quads" }, script =
+        "var total = quads * 6;" +
+        "var indices = new Uint32Array(total);" +
+        "var pos = 0;" +
+        "for (var quad = 0; quad < quads; quad++) {" +
+        "  var base = quad * 4;" +
+        "  indices[pos++] = base; indices[pos++] = base + 1; indices[pos++] = base + 2;" +
+        "  indices[pos++] = base; indices[pos++] = base + 2; indices[pos++] = base + 3;" +
+        "}" +
+        "gl.bufferData(34963, indices, 35044);")
+    public static native void uploadQuadIndices(WebGL2 gl, int quads);
+
     // PERF: заливка только первых `length` float'ов из переиспользуемого
     // Float32Array (subarray — это view без копирования).
     @JSBody(params = { "gl", "target", "data", "length", "usage" }, script =

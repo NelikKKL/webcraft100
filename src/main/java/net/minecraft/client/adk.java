@@ -47,7 +47,18 @@ public class adk {
       ArrayList var1 = new ArrayList();
       this.a = null;
       var1.add(this.c);
-      if (this.f.exists() && this.f.isDirectory()) {
+      // PATCH(texturepacks): в браузере нет папки texturepacks — паки приходят из web/extras.js
+      // (IndexedDB + выбор файла/drag&drop) через TexturePackStore.
+      for (net.minecraft.client.web.WebTexturePack var13 : net.minecraft.client.web.TexturePackStore.list()) {
+         var13.d = var13.a;
+         if (var13.a.equals(this.g)) {
+            this.a = var13;
+         }
+
+         var1.add(var13);
+      }
+
+      if (false && this.f.exists() && this.f.isDirectory()) {
          File[] var2 = this.f.listFiles();
 
          for(File var6 : var2) {

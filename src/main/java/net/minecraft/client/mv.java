@@ -125,8 +125,30 @@ public class mv implements ej {
       }
    }
 
+   // PATCH(perf): подгрузка/заселение чанков по одному за кадр (см. web/ChunkPreloader)
+   public boolean preloadChunk(int var1, int var2) {
+      if (this.c(var1, var2)) {
+         return false;
+      }
+
+      this.b(var1, var2);
+      return true;
+   }
+
+   public void populateDeferred(int var1, int var2) {
+      if (this.c(var1, var2) && !this.b(var1, var2).p) {
+         this.a(this, var1, var2);
+      }
+
+   }
+
    public void a(ej var1, int var2, int var3) {
       zx var4 = this.b(var2, var3);
+      if (!var4.p && net.minecraft.client.web.ChunkPreloader.deferPopulate) {
+         net.minecraft.client.web.ChunkPreloader.defer(var2, var3);
+         return;
+      }
+
       if (!var4.p) {
          var4.p = true;
          if (this.d != null) {

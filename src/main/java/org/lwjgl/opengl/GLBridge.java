@@ -384,8 +384,22 @@ final class GLBridge {
             // способ отрисовать выпуклый квад без per-vertex дублирования.
             final int GL_TRIANGLE_FAN = 6;
             int quads = count / 4;
-            for (int q = 0; q < quads; q++) {
-                s.gl.drawArrays(GL_TRIANGLE_FAN, drawFirst + q * 4, 4);
+            if (drawFirst == 0 && quads > 0) {
+                // PATCH(perf): один drawElements вместо drawArrays на каждый квад (частицы, текст GUI, предметы...).
+                // Индексный буфер — состояние VAO; bindVertexAttribs() уже выбрал VAO по умолчанию.
+                if (s.quadEbo == null) { s.quadEbo = s.gl.createBuffer(); s.quadEboQuads = 0; }
+                s.gl.bindBuffer(34963 /* ELEMENT_ARRAY_BUFFER */, s.quadEbo);
+                if (s.quadEboQuads < quads) {
+                    int cap = 4096;
+                    while (cap < quads) cap <<= 1;
+                    GLRaw.uploadQuadIndices(s.gl, cap);
+                    s.quadEboQuads = cap;
+                }
+                s.gl.drawElements(4 /* TRIANGLES */, quads * 6, 5125 /* UNSIGNED_INT */, 0);
+            } else {
+                for (int q = 0; q < quads; q++) {
+                    s.gl.drawArrays(GL_TRIANGLE_FAN, drawFirst + q * 4, 4);
+                }
             }
         } else {
             s.gl.drawArrays(glMode, drawFirst, count);

@@ -372,4 +372,7 @@ public final class GLState {
     // Один переиспользуемый scratch VBO для client-side заливок каждый кадр —
     // избегаем create/delete буфера на каждый draw call.
     public WebGLBuffer scratchVbo = null;
+    /** PATCH(perf): общий индексный буфер квад->2 треугольника (один drawElements вместо drawArrays на каждый квад). */
+    public WebGLBuffer quadEbo = null;
+    public int quadEboQuads = 0;
 }

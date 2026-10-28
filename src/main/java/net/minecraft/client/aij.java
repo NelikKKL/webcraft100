@@ -49,8 +49,10 @@ public class aij {
          var13 = (double)0.0F;
       }
 
-      if (var13 > (double)1.0F) {
-         var13 = (double)1.0F;
+      // PATCH(perf): раньше кадр длиннее 1 с давал до 10 тиков за кадр -> каждый тик грузит чанки
+      // (activeChunkSet), следующий кадр ещё длиннее (спираль). Ограничиваем догон ~3 тиками.
+      if (var13 > (double)0.15F) {
+         var13 = (double)0.15F;
       }
 
       this.e = (float)((double)this.e + var13 * (double)this.d * (double)this.a);
