@@ -190,4 +190,19 @@ public class ado extends acq {
          return 1;
       }
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1, float v2, float v3) { this.a((oo)v0, v1, v2, v3); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1, float v2, float v3, float v4, float v5, float v6) { this.a((oo)v0, v1, v2, v3, v4, v5, v6); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((oo)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((oo)v0, v1); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, int v1, float v2) { return this.a((oo)v0, v1, v2); }
 }

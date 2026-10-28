@@ -14,4 +14,7 @@ public class dp extends acq {
       float var4 = var1.d + (var1.c - var1.d) * var2;
       return (me.a(var3) + 1.0F) * var4;
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((qh)v0, v1, v2, v3, v4, v5); }
 }

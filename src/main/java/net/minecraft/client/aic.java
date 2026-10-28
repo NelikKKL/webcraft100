@@ -28,4 +28,13 @@ public class aic extends acq {
       float var3 = var1.bz + (var1.g - var1.bz) * var2;
       return var3;
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((yv)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1, float v2, float v3) { this.a((yv)v0, v1, v2, v3); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((yv)v0, v1); }
 }

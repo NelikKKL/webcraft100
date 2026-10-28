@@ -83,4 +83,16 @@ public class hb extends acq {
    protected int b(abh var1, int var2, float var3) {
       return -1;
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((abh)v0, v1); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, float v1, float v2) { return this.a((abh)v0, v1, v2); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, int v1, float v2) { return this.a((abh)v0, v1, v2); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int b(nq v0, int v1, float v2) { return this.b((abh)v0, v1, v2); }
 }

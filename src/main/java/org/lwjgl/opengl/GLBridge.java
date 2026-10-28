@@ -23,6 +23,7 @@ final class GLBridge {
     static final int ATTR_TEXCOORD = GLState.ATTR_TEXCOORD;
     static final int ATTR_COLOR = GLState.ATTR_COLOR;
     static final int ATTR_NORMAL = GLState.ATTR_NORMAL;
+    static final int ATTR_LIGHT = GLState.ATTR_LIGHT; // PATCH(lightmap)
 
     // --- GL enum -> WebGL enum перевод (значения constant для тех случаев,
     // где GL11/WebGL расходятся; для большинства realistic-констант GL11
@@ -323,6 +324,17 @@ final class GLBridge {
         a.isByte = true;
     }
 
+    /** PATCH(lightmap): client-side ShortBuffer (яркость вершин тесселятора: 2 short на вершину, stride в байтах). */
+    static void setClientArrayShorts(GLState s, int attr, int size, int stride, java.nio.ShortBuffer buffer, int baseOffset) {
+        GLState.AttrState a = s.attrs[attr];
+        a.fromClient = true;
+        a.clientBuffer = buffer;
+        a.clientBaseOffset = baseOffset;
+        a.size = size;
+        a.stride = stride;
+        a.isByte = false;
+    }
+
     static void setBoundArray(GLState s, int attr, int size, int stride, long offset) {
         GLState.AttrState a = s.attrs[attr];
         a.fromClient = false;
@@ -399,14 +411,14 @@ final class GLBridge {
      *     будет содержать данные совсем другого рисунка.
      */
     static float[] snapshotClientBuffers(GLState s, int first, int count) {
-        float[] interleaved = new float[count * 12];
+        float[] interleaved = new float[count * 14];
         fillSnapshot(s, first, count, interleaved);
         return interleaved;
     }
 
-    /** Заполняет первые count*12 float'ов массива out (см. snapshotClientBuffers). */
+    /** Заполняет первые count*14 float'ов массива out (см. snapshotClientBuffers). */
     static void fillSnapshot(GLState s, int first, int count, float[] interleaved) {
-        final int FLOATS_PER_VERTEX = 12; // 3 pos + 2 uv + 4 color + 3 normal
+        final int FLOATS_PER_VERTEX = 14; // 3 pos + 2 uv + 4 color + 3 normal + 2 light (PATCH(lightmap))
         for (int i = 0; i < count; i++) {
             int vtx = first + i;
             int base = i * FLOATS_PER_VERTEX;
@@ -415,6 +427,7 @@ final class GLBridge {
             readAttr(s.attrs[ATTR_TEXCOORD], vtx, interleaved, base + 3, 2, 0f, 0f, 0f, 0f);
             readAttrColorDefault(s.attrs[ATTR_COLOR], vtx, interleaved, base + 5, s);
             readAttrNormalDefault(s.attrs[ATTR_NORMAL], vtx, interleaved, base + 9, s);
+            readAttrLight(s.attrs[ATTR_LIGHT], vtx, interleaved, base + 12, s);
         }
     }
 
@@ -446,6 +459,8 @@ final class GLBridge {
         // Теперь такие атрибуты в VAO выключены, а значение подставляется на replay.
         private final boolean colorFromState;
         private final boolean normalFromState;
+        // PATCH(lightmap): если массива яркости нет, координаты лайтмапа берутся из glMultiTexCoord2f на момент replay.
+        private final boolean lightFromState;
 
         DrawRecord(GLState s, int mode, float[] snap, int count) {
             this.s = s;
@@ -453,22 +468,24 @@ final class GLBridge {
             GLState.AttrState na = s.attrs[ATTR_NORMAL];
             this.colorFromState = ca.size <= 0 || !ca.fromClient;
             this.normalFromState = na.size <= 0 || !na.fromClient;
+            GLState.AttrState la = s.attrs[ATTR_LIGHT];
+            this.lightFromState = la.size <= 0 || !la.fromClient;
             float[] data = snap;
             int n = count;
             int drawMode = mode;
             if (mode == 7 /* GL_QUADS */) {
                 int quads = count / 4;
                 n = quads * 6;
-                data = new float[n * 12];
+                data = new float[n * 14];
                 int o = 0;
                 for (int q = 0; q < quads; q++) {
-                    int b = q * 4 * 12;
+                    int b = q * 4 * 14;
                     o = copyVertex(snap, b, data, o);
-                    o = copyVertex(snap, b + 12, data, o);
-                    o = copyVertex(snap, b + 24, data, o);
+                    o = copyVertex(snap, b + 14, data, o);
+                    o = copyVertex(snap, b + 28, data, o);
                     o = copyVertex(snap, b, data, o);
-                    o = copyVertex(snap, b + 24, data, o);
-                    o = copyVertex(snap, b + 36, data, o);
+                    o = copyVertex(snap, b + 28, data, o);
+                    o = copyVertex(snap, b + 42, data, o);
                 }
                 drawMode = 4; // GL_TRIANGLES
             }
@@ -482,7 +499,7 @@ final class GLBridge {
 
             vao = gl.createVertexArray();
             gl.bindVertexArray(vao);
-            final int stride = 12 * 4;
+            final int stride = 14 * 4;
             gl.enableVertexAttribArray(ATTR_POSITION);
             gl.vertexAttribPointer(ATTR_POSITION, 3, 5126, false, stride, 0);
             gl.enableVertexAttribArray(ATTR_TEXCOORD);
@@ -499,6 +516,12 @@ final class GLBridge {
                 gl.enableVertexAttribArray(ATTR_NORMAL);
                 gl.vertexAttribPointer(ATTR_NORMAL, 3, 5126, false, stride, 9 * 4);
             }
+            if (lightFromState) {
+                gl.disableVertexAttribArray(ATTR_LIGHT);
+            } else {
+                gl.enableVertexAttribArray(ATTR_LIGHT);
+                gl.vertexAttribPointer(ATTR_LIGHT, 2, 5126, false, stride, 12 * 4);
+            }
             gl.bindVertexArray(null);
             s.currentVao = null;
             // Вернуть привязку ARRAY_BUFFER, которую ожидает immediate-путь.
@@ -506,8 +529,8 @@ final class GLBridge {
         }
 
         private static int copyVertex(float[] src, int from, float[] dst, int to) {
-            for (int i = 0; i < 12; i++) dst[to + i] = src[from + i];
-            return to + 12;
+            for (int i = 0; i < 14; i++) dst[to + i] = src[from + i];
+            return to + 14;
         }
 
         @Override
@@ -516,6 +539,7 @@ final class GLBridge {
             useVao(s, vao);
             if (colorFromState) s.gl.vertexAttrib4f(ATTR_COLOR, s.r, s.g, s.b, s.a);
             if (normalFromState) s.gl.vertexAttrib4f(ATTR_NORMAL, s.nx, s.ny, s.nz, 1f);
+            if (lightFromState) s.gl.vertexAttrib4f(ATTR_LIGHT, s.lightU, s.lightV, 0f, 1f);
             applyUniforms(s);
             s.gl.drawArrays(mode, 0, vertexCount);
         }
@@ -577,7 +601,7 @@ final class GLBridge {
 
     /** Собираем interleaved float-массив [pos3, uv2, color4, normal3] = 12 floats/vertex в scratch VBO. */
     private static void stageClientBuffers(GLState s, int first, int count) {
-        int needed = count * 12;
+        int needed = count * 14;
         int k = 8;                       // тир: 2^k float'ов, минимум 256
         while ((1 << k) < needed) k++;
         int idx = k - 8;
@@ -623,11 +647,12 @@ final class GLBridge {
      * сейчас случайно лежит в a.size от постороннего кода.
      */
     private static void setStagedOffsetsForce(GLState s) {
-        int strideBytes = 12 * 4;
+        int strideBytes = 14 * 4;
         forceStage(s.attrs[ATTR_POSITION], 3, 0, strideBytes);
         forceStage(s.attrs[ATTR_TEXCOORD], 2, 3 * 4, strideBytes);
         forceStage(s.attrs[ATTR_COLOR], 4, 5 * 4, strideBytes);
         forceStage(s.attrs[ATTR_NORMAL], 3, 9 * 4, strideBytes);
+        forceStage(s.attrs[ATTR_LIGHT], 2, 12 * 4, strideBytes);
     }
 
     private static void forceStage(GLState.AttrState a, int size, int offset, int stride) {
@@ -638,11 +663,12 @@ final class GLBridge {
     }
 
     private static void setStagedOffsets(GLState s) {
-        int strideBytes = 12 * 4;
+        int strideBytes = 14 * 4;
         setStagedIfActive(s.attrs[ATTR_POSITION], 3, 0, strideBytes);
         setStagedIfActive(s.attrs[ATTR_TEXCOORD], 2, 3 * 4, strideBytes);
         setStagedIfActive(s.attrs[ATTR_COLOR], 4, 5 * 4, strideBytes);
         setStagedIfActive(s.attrs[ATTR_NORMAL], 3, 9 * 4, strideBytes);
+        setStagedIfActive(s.attrs[ATTR_LIGHT], 2, 12 * 4, strideBytes);
     }
 
     private static void setStagedIfActive(GLState.AttrState a, int size, int offset, int stride) {
@@ -694,6 +720,27 @@ final class GLBridge {
         out[outBase + 2] = bb.get(idx + 2) / 127f;
     }
 
+    /**
+     * PATCH(lightmap): 2 short из ShortBuffer тесселятора (int brightness = sky<<20 | block<<4 лежит в
+     * слоте 7 вершины; на little-endian: short[0] = block<<4 (u), short[1] = sky<<4 (v)).
+     * Если массив не задан — текущее значение glMultiTexCoord2f(GL_TEXTURE1).
+     */
+    private static void readAttrLight(GLState.AttrState a, int vtx, float[] out, int outBase, GLState s) {
+        if (a.size <= 0 || !a.fromClient) {
+            out[outBase] = s.lightU; out[outBase + 1] = s.lightV;
+            return;
+        }
+        java.nio.ShortBuffer sb = (java.nio.ShortBuffer) a.clientBuffer;
+        int idx = a.clientBaseOffset + vtx * (a.stride / 2);
+        int s0 = sb.get(idx) & 0xFFFF;
+        int s1 = sb.get(idx + 1) & 0xFFFF;
+        if (java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN) {
+            out[outBase] = s0; out[outBase + 1] = s1;
+        } else {
+            out[outBase] = s1; out[outBase + 1] = s0;
+        }
+    }
+
     private static void bindVertexAttribs(GLState s) {
         useVao(s, null);
         s.gl.bindBuffer(ARRAY_BUFFER, s.boundArrayBuffer);
@@ -701,6 +748,7 @@ final class GLBridge {
         bindOne(s, ATTR_TEXCOORD);
         bindOne(s, ATTR_COLOR);
         bindOne(s, ATTR_NORMAL);
+        bindOne(s, ATTR_LIGHT);
     }
 
     private static void bindOne(GLState s, int attr) {
@@ -718,6 +766,8 @@ final class GLBridge {
                 s.gl.vertexAttrib4f(attr, 0f, 0f, 0f, 1f);
             } else if (attr == ATTR_NORMAL) {
                 s.gl.vertexAttrib4f(attr, s.nx, s.ny, s.nz, 1f);
+            } else if (attr == ATTR_LIGHT) {
+                s.gl.vertexAttrib4f(attr, s.lightU, s.lightV, 0f, 1f);
             }
             return;
         }
@@ -752,6 +802,7 @@ final class GLBridge {
         if (!s.staticUniformsSet) {
             s.gl.activeTexture(33984 /* TEXTURE0 */);  // другие юниты не используются
             s.gl.uniform1i(sh.uTexture, 0);
+            s.gl.uniform1i(sh.uLightmap, 1);   // PATCH(lightmap): юнит 1
             // ИСПРАВЛЕНО (блоки становились прозрачными в меню паузы): текущий
             // glColor уже попадает в шейдер через атрибут aColor (bindOne/
             // readAttrColorDefault подставляют s.r/g/b/a, когда массив цветов
@@ -781,6 +832,20 @@ final class GLBridge {
         if (s.cUseTex != useTexture) {
             s.gl.uniform1i(sh.uUseTexture, useTexture);
             s.cUseTex = useTexture;
+        }
+
+        // PATCH(lightmap): лайтмап на текстурном юните 1 (в 1.0.0 включается на время рендера мира и мобов).
+        WebGLTexture lmTex = (s.lightEnabled && s.lightTexId != 0) ? s.textures.get(s.lightTexId) : null;
+        int useLightmap = lmTex != null ? 1 : 0;
+        if (lmTex != null && s.lmBound != lmTex) {
+            s.gl.activeTexture(33985 /* TEXTURE1 */);
+            s.gl.bindTexture(GL_TEXTURE_2D, lmTex);
+            s.gl.activeTexture(33984 /* TEXTURE0 */);
+            s.lmBound = lmTex;
+        }
+        if (s.cUseLightmap != useLightmap) {
+            s.gl.uniform1i(sh.uUseLightmap, useLightmap);
+            s.cUseLightmap = useLightmap;
         }
 
         int nearest = s.curNearest ? 1 : 0;

@@ -304,6 +304,8 @@ public final class GLState {
     public static final int ATTR_TEXCOORD = 1;
     public static final int ATTR_COLOR = 2;
     public static final int ATTR_NORMAL = 3;
+    /** PATCH(lightmap): координаты лайтмапа (текстурный юнит 1): 2 short в тесселяторе -> 2 float в шейдере. */
+    public static final int ATTR_LIGHT = 4;
 
     /** Описание одного vertex-атрибута — либо client-side Buffer, либо offset в уже забинженный VBO. */
     public static final class AttrState {
@@ -357,7 +359,15 @@ public final class GLState {
     public final float[][] stageTier = new float[17][];
     public final Float32Array[] stageTierJs = new Float32Array[17];
 
-    public final AttrState[] attrs = { new AttrState(), new AttrState(), new AttrState(), new AttrState() };
+    public final AttrState[] attrs = { new AttrState(), new AttrState(), new AttrState(), new AttrState(), new AttrState() };
+
+    // PATCH(lightmap): состояние текстурного юнита 1 (GL_TEXTURE1). Игра 1.0.0 включает его на время
+    // рендера мира/мобов (adt.b/adt.a) и привязывает туда 16x16 текстуру яркости.
+    public boolean lightEnabled = false;   // glEnable(GL_TEXTURE_2D) на юните 1
+    public int lightTexId = 0;             // id текстуры, привязанной на юнит 1
+    public float lightU = 0f, lightV = 0f; // glMultiTexCoord2f(GL_TEXTURE1, u, v): текущее значение атрибута
+    public int cUseLightmap = -1;
+    public WebGLTexture lmBound = null;    // что реально привязано к WebGL-юниту 1
 
     // Один переиспользуемый scratch VBO для client-side заливок каждый кадр —
     // избегаем create/delete буфера на каждый draw call.

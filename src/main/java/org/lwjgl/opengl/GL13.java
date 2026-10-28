@@ -1,7 +1,7 @@
 package org.lwjgl.opengl;
 
 /**
- * Шим GL13. Мультитекстура не эмулируется (лайтмап на юните 1 — TODO), но игра 1.0.0 безусловно переключает
+ * Шим GL13. Юнит 1 эмулируется только как лайтмап (см. GLBridge.applyUniforms / Shaders), игра 1.0.0 безусловно переключает
  * юнит и делает на юните 1 glDisable(GL_TEXTURE_2D), glBindTexture, glMatrixMode(GL_TEXTURE) и т.п.
  * Чтобы эти вызовы не портили состояние юнита 0, мы запоминаем активный юнит; GL11 игнорирует
  * текстурные вызовы, пока активен юнит != 0.
@@ -18,5 +18,8 @@ public final class GL13 {
 
     public static void glActiveTexture(int unit) { activeUnit = unit - GL_TEXTURE0; }
     public static void glClientActiveTexture(int unit) { clientUnit = unit - GL_TEXTURE0; }
-    public static void glMultiTexCoord2f(int unit, float s, float t) { }
+    public static void glMultiTexCoord2f(int unit, float s, float t) {
+        // PATCH(lightmap): координаты лайтмапа для мобов/предметов (adx.a(adx.b, u, v))
+        if (unit == GL_TEXTURE1) GLDispatch.lightCoord(s, t);
+    }
 }

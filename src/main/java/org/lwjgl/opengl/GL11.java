@@ -91,9 +91,9 @@ public final class GL11 {
     // Простое состояние
     // ---------------------------------------------------------------
     public static void glEnable(int cap) {
-        if (cap == 3553 && GL13.activeUnit != 0) return; /* PATCH(1.0.0): юнит 1 (лайтмап) не эмулируется */ GLDispatch.enable(cap, true); }
+        if (cap == 3553 && GL13.activeUnit != 0) { if (GL13.activeUnit == 1) GLDispatch.lightmapEnable(true); return; } /* PATCH(lightmap): юнит 1 = лайтмап */ GLDispatch.enable(cap, true); }
     public static void glDisable(int cap) {
-        if (cap == 3553 && GL13.activeUnit != 0) return; GLDispatch.enable(cap, false); }
+        if (cap == 3553 && GL13.activeUnit != 0) { if (GL13.activeUnit == 1) GLDispatch.lightmapEnable(false); return; } GLDispatch.enable(cap, false); }
     // GL_VERTEX_ARRAY=32884, GL_NORMAL_ARRAY=32885, GL_COLOR_ARRAY=32886, GL_TEXTURE_COORD_ARRAY=32888.
     // decomp честно включает/выключает клиентские массивы вокруг каждого
     // glDrawArrays (см. is.java) — glDisableClientState обязан реально
@@ -102,7 +102,7 @@ public final class GL11 {
     public static void glEnableClientState(int cap) {
         if (cap == 32888 && GL13.clientUnit != 0) return; /* сами данные приходят через *Pointer(...) — здесь нечего включать */ }
     public static void glDisableClientState(int cap) {
-        if (cap == 32888 && GL13.clientUnit != 0) return; GLDispatch.disableClientState(cap); }
+        if (cap == 32888 && GL13.clientUnit != 0) { if (GL13.clientUnit == 1) GLDispatch.disableLightArray(); return; } GLDispatch.disableClientState(cap); }
     public static void glClear(int mask) { GLDispatch.clear(mask); }
     public static void glClearColor(float r, float g, float b, float a) { GLDispatch.clearColor(r, g, b, a); }
     public static void glClearDepth(double depth) { GLDispatch.clearDepth((float) depth); }
@@ -127,7 +127,7 @@ public final class GL11 {
     public static int glGenTextures() { return GLDispatch.genTexture(); }
     public static void glGenTextures(IntBuffer textures) { GLDispatch.genTextures(textures); }
     public static void glBindTexture(int target, int texture) {
-        if (GL13.activeUnit != 0) return; GLDispatch.bindTexture(target, texture); }
+        if (GL13.activeUnit != 0) { if (GL13.activeUnit == 1) GLDispatch.lightmapBind(texture); return; } GLDispatch.bindTexture(target, texture); }
     public static void glDeleteTextures(int texture) { GLDispatch.deleteTexture(texture); }
     public static void glDeleteTextures(IntBuffer textures) { GLDispatch.deleteTextures(textures); }
     public static void glTexParameteri(int target, int pname, int param) {
@@ -183,8 +183,11 @@ public final class GL11 {
     public static void glCopyTexSubImage2D(int target, int level, int xo, int yo, int x, int y, int w, int h) {
         GLDispatch.copyTexSubImage2D(target, level, xo, yo, x, y, w, h);
     }
-    /** Яркость вершин (lightmap) в 1.0.0 идёт через ARB_multitexture, которого мы не объявляем — игнорируем. */
-    public static void glTexCoordPointer(int size, int stride, ShortBuffer buffer) { }
+    /** Яркость вершин (lightmap) в 1.0.0 идёт через мультитекстуру: юнит 1 эмулируется в GLBridge/Shaders (uLightmap). */
+    public static void glTexCoordPointer(int size, int stride, ShortBuffer buffer) {
+        // PATCH(lightmap): glClientActiveTexture(GL_TEXTURE1) + 2 short на вершину = яркость тесселятора
+        if (GL13.clientUnit == 1) GLDispatch.lightCoordPointerClient(size, stride, buffer);
+    }
     /** TODO: автогенерация текстурных координат нужна только порталу Края (abi) — пока заглушка. */
     public static void glTexGeni(int coord, int pname, int param) { }
     public static void glTexGen(int coord, int pname, FloatBuffer params) { }

@@ -18,12 +18,14 @@ public final class Shaders {
         "layout(location=1) in vec2 aTexCoord;\n" +
         "layout(location=2) in vec4 aColor;\n" +
         "layout(location=3) in vec3 aNormal;\n" +
+        "layout(location=4) in vec2 aLight;\n" +
         "uniform mat4 uProjection;\n" +
         "uniform mat4 uModelview;\n" +
         "out vec2 vTexCoord;\n" +
         "out vec4 vColor;\n" +
         "out vec3 vNormalWorld;\n" +
         "out float vFogDist;\n" +
+        "out highp vec2 vLight;\n" +
         "void main() {\n" +
         "  vec4 eyePos = uModelview * vec4(aPosition, 1.0);\n" +
         "  gl_Position = uProjection * eyePos;\n" +
@@ -31,6 +33,7 @@ public final class Shaders {
         "  vColor = aColor;\n" +
         "  vNormalWorld = mat3(uModelview) * aNormal;\n" +
         "  vFogDist = -eyePos.z;\n" +
+        "  vLight = aLight;\n" +
         "}\n";
 
     private static final String FRAGMENT_SRC =
@@ -40,7 +43,11 @@ public final class Shaders {
         "in vec4 vColor;\n" +
         "in vec3 vNormalWorld;\n" +
         "in float vFogDist;\n" +
+        "in highp vec2 vLight;\n" +
         "uniform sampler2D uTexture;\n" +
+        // PATCH(lightmap): текстурный юнит 1 из 1.0.0 (16x16: строка = skylight, столбец = blocklight).
+        "uniform sampler2D uLightmap;\n" +
+        "uniform bool uUseLightmap;\n" +
         "uniform bool uUseTexture;\n" +
         "uniform bool uUseLighting;\n" +
         "uniform vec3 uLightDir0;\n" +
@@ -75,6 +82,20 @@ public final class Shaders {
         "  }\n" +
         "  return texture(uTexture, uv);\n" +
         "}\n" +
+        // Игра кладёт в lightmap-координаты (block<<4, sky<<4); матрица юнита 1 = (x+8)/256, т.е. позиция
+        // в тексель-пространстве 16x16 равна v/16 (центр текселя при v = 16*k). Билинейную фильтрацию
+        // делаем вручную через texelFetch: она не зависит от фильтров, которые игра ставит текстуре.
+        "vec3 lightmapSample(vec2 l) {\n" +
+        "  vec2 t = clamp(l / 16.0, 0.0, 15.0);\n" +
+        "  ivec2 i0 = ivec2(floor(t));\n" +
+        "  vec2 f = t - vec2(i0);\n" +
+        "  ivec2 i1 = min(i0 + ivec2(1), ivec2(15));\n" +
+        "  vec3 a = texelFetch(uLightmap, ivec2(i0.x, i0.y), 0).rgb;\n" +
+        "  vec3 b = texelFetch(uLightmap, ivec2(i1.x, i0.y), 0).rgb;\n" +
+        "  vec3 c = texelFetch(uLightmap, ivec2(i0.x, i1.y), 0).rgb;\n" +
+        "  vec3 d = texelFetch(uLightmap, ivec2(i1.x, i1.y), 0).rgb;\n" +
+        "  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);\n" +
+        "}\n" +
         "void main() {\n" +
         "  vec4 base = uUseTexture ? sampleTex(vTexCoord) : vec4(1.0);\n" +
         "  vec4 color = base * vColor * uColorMult;\n" +
@@ -84,6 +105,9 @@ public final class Shaders {
         "    float d1 = max(dot(n, normalize(uLightDir1)), 0.0);\n" +
         "    vec3 lit = uAmbient + d0 * uLightColor0 + d1 * uLightColor1;\n" +
         "    color.rgb *= lit;\n" +
+        "  }\n" +
+        "  if (uUseLightmap) {\n" +
+        "    color.rgb *= lightmapSample(vLight);\n" +
         "  }\n" +
         "  if (uUseFog) {\n" +
         "    float f;\n" +
@@ -117,6 +141,7 @@ public final class Shaders {
     public final WebGLUniformLocation uUseFog, uFogMode, uFogDensity, uFogStart, uFogEnd, uFogColor;
     public final WebGLUniformLocation uColorMult;
     public final WebGLUniformLocation uNearest, uClamp, uAlphaFunc, uAlphaRef;
+    public final WebGLUniformLocation uLightmap, uUseLightmap;
 
     Shaders(WebGL2 gl) {
         WebGLShader vs = compile(gl, 35633 /*VERTEX_SHADER*/, VERTEX_SRC);
@@ -150,6 +175,8 @@ public final class Shaders {
         uClamp = gl.getUniformLocation(program, "uClamp");
         uAlphaFunc = gl.getUniformLocation(program, "uAlphaFunc");
         uAlphaRef = gl.getUniformLocation(program, "uAlphaRef");
+        uLightmap = gl.getUniformLocation(program, "uLightmap");
+        uUseLightmap = gl.getUniformLocation(program, "uUseLightmap");
     }
 
     private static WebGLShader compile(WebGL2 gl, int type, String src) {

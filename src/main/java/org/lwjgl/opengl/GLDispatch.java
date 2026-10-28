@@ -292,6 +292,27 @@ final class GLDispatch {
         maybeRecord(() -> GLBridge.drawArrays(s(), mode, first, count));
     }
 
+    // --- PATCH(lightmap): текстурный юнит 1 (лайтмап) ---
+    static void lightmapEnable(boolean on) {
+        maybeRecord(() -> s().lightEnabled = on);
+    }
+
+    static void lightmapBind(int id) {
+        maybeRecord(() -> s().lightTexId = id);
+    }
+
+    static void lightCoord(float u, float v) {
+        maybeRecord(() -> { GLState ls = s(); ls.lightU = u; ls.lightV = v; });
+    }
+
+    static void lightCoordPointerClient(int size, int stride, ShortBuffer buffer) {
+        GLBridge.setClientArrayShorts(s(), GLBridge.ATTR_LIGHT, size, stride, buffer, buffer.position());
+    }
+
+    static void disableLightArray() {
+        s().attrs[GLBridge.ATTR_LIGHT].size = 0;
+    }
+
     static void disableClientState(int cap) {
         int attr = GLBridge.clientStateToAttr(cap);
         if (attr < 0) return;

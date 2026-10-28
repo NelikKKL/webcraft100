@@ -7,5 +7,5 @@ public final class ARBMultitexture {
     public static final int GL_TEXTURE1_ARB = 33985;
     public static void glActiveTextureARB(int unit) { GL13.glActiveTexture(unit); }
     public static void glClientActiveTextureARB(int unit) { GL13.glClientActiveTexture(unit); }
-    public static void glMultiTexCoord2fARB(int unit, float s, float t) { }
+    public static void glMultiTexCoord2fARB(int unit, float s, float t) { GL13.glMultiTexCoord2f(unit, s, t); }
 }

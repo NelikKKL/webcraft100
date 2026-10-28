@@ -23,4 +23,10 @@ public class ahr extends acq {
    public void a(hm var1, double var2, double var4, double var6, float var8, float var9) {
       super.a((nq)var1, var2, var4, var6, var8, var9);
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, int v1, float v2) { return this.a((hm)v0, v1, v2); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((hm)v0, v1, v2, v3, v4, v5); }
 }

@@ -35,4 +35,13 @@ public class abw extends acq {
       float var3 = var1.ax();
       GL11.glScalef(var3, var3, var3);
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected float a(nq v0) { return this.a((vq)v0); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, int v1, float v2) { return this.a((vq)v0, v1, v2); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((vq)v0, v1); }
 }

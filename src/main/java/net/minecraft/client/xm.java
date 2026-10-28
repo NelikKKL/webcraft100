@@ -34,4 +34,10 @@ public class xm extends acq {
       float var6 = (float)var3;
       GL11.glScalef(var5 * var6, 1.0F / var5 * var6, var5 * var6);
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, int v1, float v2) { return this.a((aed)v0, v1, v2); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((aed)v0, v1); }
 }

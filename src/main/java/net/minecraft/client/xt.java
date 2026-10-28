@@ -25,4 +25,13 @@ public class xt extends acq {
    protected int a(gl var1, int var2, float var3) {
       return -1;
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected float a(nq v0) { return this.a((gl)v0); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((gl)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected int a(nq v0, int v1, float v2) { return this.a((gl)v0, v1, v2); }
 }

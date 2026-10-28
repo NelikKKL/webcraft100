@@ -15,4 +15,10 @@ public class acb extends acq {
 
    protected void b(aik var1, float var2) {
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((aik)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void b(nq v0, float v1) { this.b((aik)v0, v1); }
 }

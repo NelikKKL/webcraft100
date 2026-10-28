@@ -35,4 +35,10 @@ public class la extends acq {
          GL11.glDisable(2884);
       }
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((tb)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((tb)v0, v1); }
 }

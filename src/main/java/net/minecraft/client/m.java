@@ -28,4 +28,10 @@ public class m extends acq {
       float var6 = (float)var3;
       GL11.glScalef(var5 * var6, 1.0F / var5 * var6, var5 * var6);
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((aea)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((aea)v0, v1); }
 }

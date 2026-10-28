@@ -19,4 +19,7 @@ public class im extends acq {
       GL11.glScalef(var6, var5, var6);
       GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((is)v0, v1); }
 }

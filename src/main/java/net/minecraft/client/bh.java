@@ -29,4 +29,7 @@ public class bh extends acq {
       }
 
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((ahd)v0, v1); }
 }

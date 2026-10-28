@@ -13,4 +13,7 @@ public class ahi extends acq {
    protected void a(abc var1, float var2) {
       GL11.glScalef(this.a, this.a, this.a);
    }
+
+   // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
+   protected void a(nq v0, float v1) { this.a((abc)v0, v1); }
 }
