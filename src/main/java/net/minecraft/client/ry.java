@@ -1991,6 +1991,13 @@ public class ry implements kq {
       pf.b();
 
       for(acm var17 : (Iterable<acm>)(Iterable)(this.T)) {
+         // PATCH(perf): случайные тики только для уже загруженных чанков. this.c(x,z) генерирует чанк, если его нет,
+         // и обходил очередь подгрузки: до 225 чанков синхронно за один тик на каждом пересечении границы чанка.
+         // Недостающие догружает web/ChunkPreloader (радиус >= 9).
+         if (!this.x().c(var17.a, var17.b)) {
+            continue;
+         }
+
          int var18 = var17.a * 16;
          int var19 = var17.b * 16;
          pf.a("getChunk");
