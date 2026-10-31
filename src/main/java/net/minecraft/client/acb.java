@@ -21,4 +21,7 @@ public class acb extends acq {
 
    // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
    protected void b(nq v0, float v1) { this.b((aik)v0, v1); }
+
+   // PATCH(bridge3): float-хук RenderLiving.c(nq,float) (угол крыла/хвоста/щупалец), переопределён методом с другим именем
+   protected float c(nq v0, float v1) { return this.a((aik)v0, v1); }
 }

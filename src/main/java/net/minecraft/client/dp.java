@@ -17,4 +17,7 @@ public class dp extends acq {
 
    // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
    public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((qh)v0, v1, v2, v3, v4, v5); }
+
+   // PATCH(bridge3): float-хук RenderLiving.c(nq,float) (угол крыла/хвоста/щупалец), переопределён методом с другим именем
+   protected float c(nq v0, float v1) { return this.a((qh)v0, v1); }
 }

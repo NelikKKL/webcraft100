@@ -169,15 +169,33 @@ public abstract class sr {
       this.B.a(var1, var2, var3, var4);
    }
 
+   // PATCH(biome-blend): цвет травы/листвы усредняется по 3x3 соседним колонкам (как в более поздних версиях игры),
+   // чтобы на границе биомов был плавный переход цвета, а не ступенька в один блок.
    public int a(kq var1, int var2, int var3, int var4) {
-      double var5 = (double)var1.a().a(var2, var3, var4);
-      double var7 = (double)var1.a().b(var2, var4);
-      return ha.a(var5, var7);
+      return this.blend(var1, var2, var3, var4, false);
    }
 
    public int b(kq var1, int var2, int var3, int var4) {
-      double var5 = (double)var1.a().a(var2, var3, var4);
-      double var7 = (double)var1.a().b(var2, var4);
-      return db.a(var5, var7);
+      return this.blend(var1, var2, var3, var4, true);
+   }
+
+   private int blend(kq var1, int var2, int var3, int var4, boolean var5) {
+      vh var6 = var1.a();
+      int var7 = 0;
+      int var8 = 0;
+      int var9 = 0;
+
+      for(int var10 = -1; var10 <= 1; ++var10) {
+         for(int var11 = -1; var11 <= 1; ++var11) {
+            double var12 = (double)var6.a(var2 + var11, var3, var4 + var10);
+            double var14 = (double)var6.b(var2 + var11, var4 + var10);
+            int var16 = var5 ? db.a(var12, var14) : ha.a(var12, var14);
+            var7 += var16 >> 16 & 255;
+            var8 += var16 >> 8 & 255;
+            var9 += var16 & 255;
+         }
+      }
+
+      return (var7 / 9 & 255) << 16 | (var8 / 9 & 255) << 8 | var9 / 9 & 255;
    }
 }

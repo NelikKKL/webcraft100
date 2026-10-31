@@ -40,8 +40,8 @@ public class ch extends acq {
    protected void a(nq v0, double v1, double v2, double v3) { this.a((ai)v0, v1, v2, v3); }
 
    // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
-   protected void a(nq v0, float v1) { this.a((ai)v0, v1); }
+   protected void a(nq v0, float v1) { this.b((ai)v0, v1); } // PATCH(bridge3): bridge к методу с ДРУГИМ именем (a<->b), прежний bridge2 был привязан к одноимённому и вызывал не то
 
    // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
-   protected void b(nq v0, float v1) { this.b((ai)v0, v1); }
+   protected void b(nq v0, float v1) { this.a((ai)v0, v1); } // PATCH(bridge3): bridge к методу с ДРУГИМ именем (a<->b), прежний bridge2 был привязан к одноимённому и вызывал не то
 }

@@ -75,7 +75,7 @@ public class aae extends acq {
    public void a(nq v0, double v1, double v2, double v3, float v4, float v5) { this.a((aii)v0, v1, v2, v3, v4, v5); }
 
    // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
-   protected void a(nq v0, float v1) { this.a((aii)v0, v1); }
+   protected void b(nq v0, float v1) { this.a((aii)v0, v1); } // PATCH(bridge3): bridge к методу с ДРУГИМ именем (a<->b), прежний bridge2 был привязан к одноимённому и вызывал не то
 
    // PATCH(bridge2): потерянный bridge-метод (иначе вызывается версия из acq, а не переопределённая)
    protected int a(nq v0, int v1, float v2) { return this.a((aii)v0, v1, v2); }
