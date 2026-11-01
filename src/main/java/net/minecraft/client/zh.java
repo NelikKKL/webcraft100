@@ -40,6 +40,16 @@ public class zh {
       var3.dispose();
    }
 
+   // PATCH(skins): сбросить загруженную текстуру (скин игрока заменён на тот же путь)
+   public void invalidate(String var1) {
+      Integer var2 = (Integer)this.d.remove(var1);
+      if (var2 != null) {
+         this.a(var2.intValue());
+      }
+
+      this.e.remove(var1);
+   }
+
    public int[] a(String var1) {
       afs var2 = this.l.a;
       int[] var3 = (int[])this.e.get(var1);

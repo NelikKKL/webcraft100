@@ -21,6 +21,7 @@ public final class WebEntryPoint {
 
     private static WebMinecraft minecraft;
     private static int framesSinceFlush = 0;
+    private static long lastFlushMillis = System.currentTimeMillis();
 
     public static void main(String[] args) {
         Thread game = new Thread(WebEntryPoint::gameThread, "Game");
@@ -62,9 +63,15 @@ public final class WebEntryPoint {
             }
 
             // Периодически сбрасываем накопленные изменения мира в IndexedDB
+            // PATCH(perf): раньше каждые 300 кадров (при 144 fps — раз в 2 с): запись региональных файлов в IndexedDB
+            // давала микрофризы. Теперь не чаще раза в 20 с (при выходе/закрытии вкладки сброс делает exit-хук и saveWorldNow).
             if (++framesSinceFlush >= 300) {
                 framesSinceFlush = 0;
-                WorldStore.flush();
+                long now = System.currentTimeMillis();
+                if (now - lastFlushMillis >= 20000L) {
+                    lastFlushMillis = now;
+                    WorldStore.flush();
+                }
             }
 
             Frames.next();

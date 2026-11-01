@@ -1097,15 +1097,32 @@ public class afv implements bd {
             this.k.set(var10, (Object)null);
          }
 
+         ArrayList var30 = null;
          if (var7 != null) {
             if (var7.size() > 1) {
                Collections.sort(var7, var5);
             }
 
+            // PATCH(perf): ближние чанки перестраивались все сразу (при подгрузке новых — десятки за кадр = фриз).
+            // Теперь от ближних к дальним, пока не выйдет бюджет времени (минимум один за вызов); остальные — в следующий кадр.
+            long var31 = System.nanoTime();
+            int var32 = 0;
+
             for(int var21 = var7.size() - 1; var21 >= 0; --var21) {
                ge var23 = (ge)var7.get(var21);
+               if (var32 >= 1 && !var2 && System.nanoTime() - var31 > 3000000L) {
+                  if (var30 == null) {
+                     var30 = new ArrayList();
+                  }
+
+                  var30.add(var23);
+                  --var9;
+                  continue;
+               }
+
                var23.a();
                var23.u = false;
+               ++var32;
             }
          }
 
@@ -1153,6 +1170,11 @@ public class afv implements bd {
          while(true) {
             --var25;
             if (var25 < var28) {
+               if (var30 != null) {
+                  this.k.addAll(var30);
+                  return false;
+               }
+
                return var8 == var9 + var22;
             }
 

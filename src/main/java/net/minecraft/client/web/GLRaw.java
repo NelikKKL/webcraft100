@@ -88,6 +88,11 @@ public final class GLRaw {
         "gl.bufferData(34963, indices, 35044);")
     public static native void uploadQuadIndices(WebGL2 gl, int quads);
 
+    // PATCH(perf): заливка байтового массива (упакованные цвет/нормаль/свет вершин display list'а).
+    @JSBody(params = { "gl", "target", "data", "usage" }, script =
+        "gl.bufferData(target, data, usage);")
+    public static native void bufferDataBytes(WebGL2 gl, int target, Uint8Array data, int usage);
+
     // PERF: заливка только первых `length` float'ов из переиспользуемого
     // Float32Array (subarray — это view без копирования).
     @JSBody(params = { "gl", "target", "data", "length", "usage" }, script =

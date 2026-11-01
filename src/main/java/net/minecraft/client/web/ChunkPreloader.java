@@ -8,10 +8,12 @@ import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.ej;
 import net.minecraft.client.me;
-import net.minecraft.client.mv;
+import net.minecraft.client.jz;
 
 /**
  * PATCH(perf): размазывание генерации чанков по кадрам.
+ *
+ * (одиночная игра работает через jz = ChunkProviderServer; раньше здесь был mv, который в этом порте не используется)
  *
  * В 1.0.0 одиночная игра генерирует чанки синхронно в главном потоке: как только игрок пересекает границу чанка,
  * мировой тик (activeChunkSet, радиус 7) и рендер за ОДИН тик запрашивают целый ряд новых чанков, каждый из которых
@@ -34,7 +36,10 @@ public final class ChunkPreloader {
 
     private static final List<int[]> queue = new ArrayList<>();
     private static final Set<Long> queued = new HashSet<>();
-    private static mv lastProvider = null;
+    private static jz lastProvider = null;
+    // всё вокруг игрока уже загружено — повторное сканирование (сотни поисков по long-ключам) не нужно, пока он не сменил чанк
+    private static boolean complete = false;
+    private static int donePcx = Integer.MIN_VALUE, donePcz = Integer.MIN_VALUE, doneRadius = -1;
 
     private static long key(int x, int z) {
         return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
@@ -54,11 +59,11 @@ public final class ChunkPreloader {
             return;
         }
         ej provider = mc.f.x();
-        if (!(provider instanceof mv)) {
+        if (!(provider instanceof jz)) {
             clear();
             return;
         }
-        mv m = (mv) provider;
+        jz m = (jz) provider;
         if (m != lastProvider) {
             clear();
             lastProvider = m;
@@ -70,12 +75,21 @@ public final class ChunkPreloader {
         int pcz = me.d((float) ((int) mc.h.u)) >> 4;
         int radius = Math.max(9, Math.min(13, (16 >> (mc.A.e & 3)) + 2));
 
+        if (complete && pcx == donePcx && pcz == donePcz && radius == doneRadius && queue.isEmpty()) return;
+        complete = false;
+
         long start = System.nanoTime();
         int ops = 0;
         deferPopulate = true;
         try {
             while (ops < MAX_OPS_PER_FRAME) {
-                if (!populateOne(m, pcx, pcz) && !loadOne(m, pcx, pcz, radius)) break;
+                if (!populateOne(m, pcx, pcz) && !loadOne(m, pcx, pcz, radius)) {
+                    complete = true;
+                    donePcx = pcx;
+                    donePcz = pcz;
+                    doneRadius = radius;
+                    break;
+                }
                 ops++;
                 if (System.nanoTime() - start > BUDGET_NANOS) break;
             }
@@ -88,10 +102,11 @@ public final class ChunkPreloader {
         queue.clear();
         queued.clear();
         lastProvider = null;
+        complete = false;
     }
 
     /** Заселяет ближайший к игроку отложенный чанк. */
-    private static boolean populateOne(mv m, int pcx, int pcz) {
+    private static boolean populateOne(jz m, int pcx, int pcz) {
         int best = -1;
         long bestDist = Long.MAX_VALUE;
         for (int i = 0; i < queue.size(); i++) {
@@ -118,7 +133,7 @@ public final class ChunkPreloader {
     }
 
     /** Загружает/генерирует ближайший ещё не загруженный чанк в квадрате радиуса radius вокруг игрока. */
-    private static boolean loadOne(mv m, int pcx, int pcz, int radius) {
+    private static boolean loadOne(jz m, int pcx, int pcz, int radius) {
         for (int r = 0; r <= radius; r++) {
             for (int dx = -r; dx <= r; dx++) {
                 for (int dz = -r; dz <= r; dz++) {

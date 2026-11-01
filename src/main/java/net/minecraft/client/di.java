@@ -32,6 +32,12 @@ public class di extends vi {
 
    public void n() {
       super.n();
+      // PATCH(skins): текстура игрока = выбранный скин (перезагружается при смене)
+      if (net.minecraft.client.web.SkinStore.consumePending()) {
+         this.c.p.invalidate(net.minecraft.client.web.SkinStore.PATH);
+      }
+
+      this.aA = net.minecraft.client.web.SkinStore.texturePath();
       this.br = this.b.a;
       this.bs = this.b.b;
       this.bu = this.b.d;

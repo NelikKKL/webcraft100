@@ -170,6 +170,11 @@ public final class SkinStore {
 
     public static String texturePath() { return has ? PATH : DEFAULT_PATH; }
 
+    /** Размер текущей текстуры скина (для превью в меню): стандартный скин — 64x32. */
+    public static int textureWidth() { return has ? width : 64; }
+
+    public static int textureHeight() { return has ? height : 32; }
+
     /** 64x64 (и HD-аналоги) — рисуем моделью с двумя слоями и отдельными левыми конечностями. */
     public static boolean isModern() { return has && modern; }
 

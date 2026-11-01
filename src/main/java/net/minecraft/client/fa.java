@@ -23,12 +23,31 @@ public class fa extends al {
       this(var1, 0.0F);
    }
 
+   // PATCH(skins): современные скины 64x64 (второй слой одежды, отдельные левые руки/ноги, тонкие "Alex"-руки).
+   public acf rsleeve;
+   public acf lsleeve;
+   public acf rpants;
+   public acf lpants;
+   public acf jacket;
+   private final boolean modern;
+
    public fa(float var1, float var2) {
+      this(var1, var2, false, false);
+   }
+
+   public fa(float var1, float var2, boolean var3, boolean var4) {
+      this.modern = var3;
+      if (var3) {
+         this.e = 64;
+         this.f = 64;
+      }
+
       this.p = 0;
       this.q = 0;
       this.r = false;
       this.s = false;
       this.o = new acf(this, 0, 0);
+      this.o.b(64, 32);
       this.o.a(-5.0F, 0.0F, -1.0F, 10, 16, 1, var1);
       this.n = new acf(this, 24, 0);
       this.n.a(-3.0F, -6.0F, -1.0F, 6, 6, 1, var1);
@@ -41,20 +60,80 @@ public class fa extends al {
       this.i = new acf(this, 16, 16);
       this.i.a(-4.0F, 0.0F, -2.0F, 8, 12, 4, var1);
       this.i.a(0.0F, 0.0F + var2, 0.0F);
+      int var5 = var3 && var4 ? 3 : 4;
+      float var6 = var3 && var4 ? 0.5F : 0.0F;
       this.j = new acf(this, 40, 16);
-      this.j.a(-3.0F, -2.0F, -2.0F, 4, 12, 4, var1);
-      this.j.a(-5.0F, 2.0F + var2, 0.0F);
-      this.k = new acf(this, 40, 16);
-      this.k.i = true;
-      this.k.a(-1.0F, -2.0F, -2.0F, 4, 12, 4, var1);
-      this.k.a(5.0F, 2.0F + var2, 0.0F);
+      this.j.a(var3 && var4 ? -2.0F : -3.0F, -2.0F, -2.0F, var5, 12, 4, var1);
+      this.j.a(-5.0F, 2.0F + var6 + var2, 0.0F);
+      this.k = new acf(this, var3 ? 32 : 40, var3 ? 48 : 16);
+      this.k.i = !var3;
+      this.k.a(-1.0F, -2.0F, -2.0F, var5, 12, 4, var1);
+      this.k.a(5.0F, 2.0F + var6 + var2, 0.0F);
       this.l = new acf(this, 0, 16);
       this.l.a(-2.0F, 0.0F, -2.0F, 4, 12, 4, var1);
       this.l.a(-2.0F, 12.0F + var2, 0.0F);
-      this.m = new acf(this, 0, 16);
-      this.m.i = true;
+      this.m = new acf(this, var3 ? 16 : 0, var3 ? 48 : 16);
+      this.m.i = !var3;
       this.m.a(-2.0F, 0.0F, -2.0F, 4, 12, 4, var1);
       this.m.a(2.0F, 12.0F + var2, 0.0F);
+      if (var3) {
+         this.jacket = new acf(this, 16, 32);
+         this.jacket.a(-4.0F, 0.0F, -2.0F, 8, 12, 4, var1 + 0.25F);
+         this.jacket.a(0.0F, 0.0F + var2, 0.0F);
+         this.rsleeve = new acf(this, 40, 32);
+         this.rsleeve.a(var4 ? -2.0F : -3.0F, -2.0F, -2.0F, var5, 12, 4, var1 + 0.25F);
+         this.rsleeve.a(-5.0F, 2.0F + var6 + var2, 0.0F);
+         this.lsleeve = new acf(this, 48, 48);
+         this.lsleeve.a(-1.0F, -2.0F, -2.0F, var5, 12, 4, var1 + 0.25F);
+         this.lsleeve.a(5.0F, 2.0F + var6 + var2, 0.0F);
+         this.rpants = new acf(this, 0, 32);
+         this.rpants.a(-2.0F, 0.0F, -2.0F, 4, 12, 4, var1 + 0.25F);
+         this.rpants.a(-2.0F, 12.0F + var2, 0.0F);
+         this.lpants = new acf(this, 0, 48);
+         this.lpants.a(-2.0F, 0.0F, -2.0F, 4, 12, 4, var1 + 0.25F);
+         this.lpants.a(2.0F, 12.0F + var2, 0.0F);
+      }
+
+   }
+
+   private static void sync(acf var0, acf var1) {
+      var1.c = var0.c;
+      var1.d = var0.d;
+      var1.e = var0.e;
+      var1.f = var0.f;
+      var1.g = var0.g;
+      var1.h = var0.h;
+      var1.j = var0.j;
+   }
+
+   /** Рисует второй слой одежды (только для 64x64 моделей); положения берёт у основных частей. */
+   public void c(float var1) {
+      if (this.modern) {
+         sync(this.i, this.jacket);
+         sync(this.j, this.rsleeve);
+         sync(this.k, this.lsleeve);
+         sync(this.l, this.rpants);
+         sync(this.m, this.lpants);
+         this.jacket.a(var1);
+         this.rsleeve.a(var1);
+         this.lsleeve.a(var1);
+         this.rpants.a(var1);
+         this.lpants.a(var1);
+      }
+
+   }
+
+   /** Рукав правой руки (вид от первого лица). */
+   public void e(float var1) {
+      if (this.modern) {
+         sync(this.j, this.rsleeve);
+         this.rsleeve.a(var1);
+      }
+
+   }
+
+   public boolean d() {
+      return this.modern;
    }
 
    public void a(ia var1, float var2, float var3, float var4, float var5, float var6, float var7) {
@@ -66,6 +145,7 @@ public class fa extends al {
       this.l.a(var7);
       this.m.a(var7);
       this.h.a(var7);
+      this.c(var7);
    }
 
    public void a(float var1, float var2, float var3, float var4, float var5, float var6) {

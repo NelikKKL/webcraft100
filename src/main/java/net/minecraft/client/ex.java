@@ -32,8 +32,10 @@ public class ex extends xe {
          ++var2;
       }
 
-      this.o.add(new ct(101, this.m / 2 - 100, this.n / 6 + 96 + 12, var1.a("options.video")));
-      this.o.add(new ct(100, this.m / 2 - 100, this.n / 6 + 120 + 12, var1.a("options.controls")));
+      this.o.add(new ct(101, this.m / 2 - 155, this.n / 6 + 96 + 12, 150, 20, var1.a("options.video")));
+      this.o.add(new ct(100, this.m / 2 + 5, this.n / 6 + 96 + 12, 150, 20, var1.a("options.controls")));
+      // PATCH(skins): экран выбора скина и ника
+      this.o.add(new ct(102, this.m / 2 - 100, this.n / 6 + 120 + 12, 200, 20, "Skin & Name..."));
       this.o.add(new ct(200, this.m / 2 - 100, this.n / 6 + 168, var1.a("gui.done")));
    }
 
@@ -47,6 +49,11 @@ public class ex extends xe {
          if (var1.f == 101) {
             this.l.A.b();
             this.l.a((xe)(new cc(this, this.c)));
+         }
+
+         if (var1.f == 102) {
+            this.l.A.b();
+            this.l.a((xe)(new SkinScreen(this)));
          }
 
          if (var1.f == 100) {

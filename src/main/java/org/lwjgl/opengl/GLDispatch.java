@@ -282,6 +282,14 @@ final class GLDispatch {
                 // передаём уже готовый float[] снимок, а не ссылку на
                 // живой буфер. Коллизии (данные блоков в мире) эта ошибка
                 // никогда не задевала — она чисто про кэш геометрии.
+                if (mode == 7 /* GL_QUADS */) {
+                    // PATCH(perf): компактная запись (индексные квады, упакованные атрибуты)
+                    Runnable compact = GLBridge.createCompactQuadRecord(state, first, count);
+                    if (compact != null) {
+                        state.recordPublic(compact);
+                        return;
+                    }
+                }
                 float[] snapshot = GLBridge.snapshotClientBuffers(state, first, count);
                 // PERF: геометрия заливается в собственный VBO/VAO один раз, при
                 // записи; replay = bindVertexArray + drawArrays (см. DrawRecord).

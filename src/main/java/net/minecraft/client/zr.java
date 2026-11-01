@@ -7,11 +7,16 @@ public class zr extends acq {
    private fa a;
    private fa b;
    private fa i;
+   // PATCH(skins): базовая модель и модели для скинов 64x64 (классические и тонкие руки)
+   private fa base;
+   private fa modernModel;
+   private fa slimModel;
    private static final String[] j = new String[]{"cloth", "chain", "iron", "diamond", "gold"};
 
    public zr() {
       super(new fa(0.0F), 0.5F);
       this.a = (fa)this.g;
+      this.base = this.a;
       this.b = new fa(1.0F);
       this.i = new fa(0.5F);
    }
@@ -43,7 +48,30 @@ public class zr extends acq {
       return -1;
    }
 
+   private void pick(vi var1) {
+      fa var2 = this.base;
+      if (var1 instanceof di && net.minecraft.client.web.SkinStore.isModern()) {
+         if (net.minecraft.client.web.SkinStore.isSlim()) {
+            if (this.slimModel == null) {
+               this.slimModel = new fa(0.0F, 0.0F, true, true);
+            }
+
+            var2 = this.slimModel;
+         } else {
+            if (this.modernModel == null) {
+               this.modernModel = new fa(0.0F, 0.0F, true, false);
+            }
+
+            var2 = this.modernModel;
+         }
+      }
+
+      this.a = var2;
+      this.g = var2;
+   }
+
    public void a(vi var1, double var2, double var4, double var6, float var8, float var9) {
+      this.pick(var1);
       dk var10 = var1.by.a();
       this.b.q = this.i.q = this.a.q = var10 != null ? 1 : 0;
       if (var10 != null && var1.ay() > 0) {
@@ -269,9 +297,11 @@ public class zr extends acq {
    }
 
    public void b() {
+      this.pick((vi)this.c.h);
       this.a.a = 0.0F;
       this.a.a(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F);
       this.a.j.a(0.0625F);
+      this.a.e(0.0625F);
    }
 
    protected void b(vi var1, double var2, double var4, double var6) {

@@ -575,6 +575,183 @@ final class GLBridge {
         }
     }
 
+    // ------------------------------------------------------------------
+    // PATCH(perf): компактная запись display list'а из квадов.
+    //
+    // Было: 14 float (56 байт) на вершину и 6 вершин на квад (квад разворачивался в 2 треугольника) —
+    // ~336 байт на квад, лишнее копирование при записи и 6 вызовов вершинного шейдера на квад.
+    // Стало: 4 вершины на квад + общий индексный буфер (0,1,2, 0,2,3), 32 байта на вершину:
+    //   буфер A: float pos3 + uv2 (20 байт);
+    //   буфер B: 12 байт = цвет RGBA (ubyte, normalized) | нормаль xyz (byte, normalized) + pad | свет u,v (ubyte).
+    // Итого ~128 байт на квад (в 2.6 раза меньше), картинка та же. Режимы, отличные от GL_QUADS, и
+    // нестандартные источники атрибутов идут прежним путём (DrawRecord).
+    // ------------------------------------------------------------------
+    static final class QuadRecord implements Runnable, GLState.Disposable {
+        private final GLState s;
+        private final int quads;
+        private WebGLBuffer vboA;
+        private WebGLBuffer vboB;
+        private WebGLVertexArrayObject vao;
+        private final boolean colorFromState;
+        private final boolean normalFromState;
+        private final boolean lightFromState;
+
+        QuadRecord(GLState s, float[] posUv, byte[] packed, int vertexCount,
+                   boolean colorFromState, boolean normalFromState, boolean lightFromState) {
+            this.s = s;
+            this.quads = vertexCount / 4;
+            this.colorFromState = colorFromState;
+            this.normalFromState = normalFromState;
+            this.lightFromState = lightFromState;
+            WebGL2 gl = s.gl;
+
+            // общий индексный буфер: пока выбран VAO по умолчанию, чтобы не испортить чужой VAO
+            gl.bindVertexArray(null);
+            s.currentVao = null;
+            if (s.quadEbo == null) { s.quadEbo = gl.createBuffer(); s.quadEboQuads = 0; }
+            if (s.quadEboQuads < quads) {
+                gl.bindBuffer(34963 /* ELEMENT_ARRAY_BUFFER */, s.quadEbo);
+                int cap = 4096;
+                while (cap < quads) cap <<= 1;
+                GLRaw.uploadQuadIndices(gl, cap);
+                s.quadEboQuads = cap;
+            }
+
+            vboA = gl.createBuffer();
+            gl.bindBuffer(ARRAY_BUFFER, vboA);
+            gl.bufferData(ARRAY_BUFFER, Float32ArrayFactory.wrap(posUv), 35044 /* STATIC_DRAW */);
+            vboB = gl.createBuffer();
+            gl.bindBuffer(ARRAY_BUFFER, vboB);
+            Uint8Array bytes = Uint8ArrayFactory.create(packed.length);
+            bytes.set(packed, 0);
+            GLRaw.bufferDataBytes(gl, ARRAY_BUFFER, bytes, 35044);
+
+            vao = gl.createVertexArray();
+            gl.bindVertexArray(vao);
+            gl.bindBuffer(ARRAY_BUFFER, vboA);
+            gl.enableVertexAttribArray(ATTR_POSITION);
+            gl.vertexAttribPointer(ATTR_POSITION, 3, 5126 /* FLOAT */, false, 20, 0);
+            gl.enableVertexAttribArray(ATTR_TEXCOORD);
+            gl.vertexAttribPointer(ATTR_TEXCOORD, 2, 5126, false, 20, 12);
+            gl.bindBuffer(ARRAY_BUFFER, vboB);
+            if (colorFromState) {
+                gl.disableVertexAttribArray(ATTR_COLOR);
+            } else {
+                gl.enableVertexAttribArray(ATTR_COLOR);
+                gl.vertexAttribPointer(ATTR_COLOR, 4, 5121 /* UNSIGNED_BYTE */, true, 12, 0);
+            }
+            if (normalFromState) {
+                gl.disableVertexAttribArray(ATTR_NORMAL);
+            } else {
+                gl.enableVertexAttribArray(ATTR_NORMAL);
+                gl.vertexAttribPointer(ATTR_NORMAL, 3, 5120 /* BYTE */, true, 12, 4);
+            }
+            if (lightFromState) {
+                gl.disableVertexAttribArray(ATTR_LIGHT);
+            } else {
+                gl.enableVertexAttribArray(ATTR_LIGHT);
+                gl.vertexAttribPointer(ATTR_LIGHT, 2, 5121, false, 12, 8);
+            }
+            gl.bindBuffer(34963, s.quadEbo);
+            gl.bindVertexArray(null);
+            s.currentVao = null;
+            gl.bindBuffer(ARRAY_BUFFER, s.boundArrayBuffer);
+        }
+
+        @Override
+        public void run() {
+            if (vao == null || quads == 0) return;
+            useVao(s, vao);
+            if (colorFromState) s.gl.vertexAttrib4f(ATTR_COLOR, s.r, s.g, s.b, s.a);
+            if (normalFromState) s.gl.vertexAttrib4f(ATTR_NORMAL, s.nx, s.ny, s.nz, 1f);
+            if (lightFromState) s.gl.vertexAttrib4f(ATTR_LIGHT, s.lightU, s.lightV, 0f, 1f);
+            applyUniforms(s);
+            s.gl.drawElements(4 /* TRIANGLES */, quads * 6, 5125 /* UNSIGNED_INT */, 0);
+        }
+
+        @Override
+        public void dispose() {
+            if (vao != null) {
+                if (s.currentVao == vao) {
+                    s.gl.bindVertexArray(null);
+                    s.currentVao = null;
+                }
+                s.gl.deleteVertexArray(vao);
+                vao = null;
+            }
+            if (vboA != null) { s.gl.deleteBuffer(vboA); vboA = null; }
+            if (vboB != null) { s.gl.deleteBuffer(vboB); vboB = null; }
+        }
+    }
+
+    /**
+     * Снимает данные client-side атрибутов СРАЗУ (буфер тесселятора общий и потом перезаписывается) прямо в
+     * компактный формат QuadRecord. null — источник атрибутов нестандартный, нужен прежний путь.
+     */
+    static Runnable createCompactQuadRecord(GLState s, int first, int count) {
+        if (count <= 0 || (count & 3) != 0) return null;
+        GLState.AttrState pa = s.attrs[ATTR_POSITION];
+        GLState.AttrState ta = s.attrs[ATTR_TEXCOORD];
+        GLState.AttrState ca = s.attrs[ATTR_COLOR];
+        GLState.AttrState na = s.attrs[ATTR_NORMAL];
+        GLState.AttrState la = s.attrs[ATTR_LIGHT];
+        if (pa.size != 3 || !pa.fromClient || !(pa.clientBuffer instanceof FloatBuffer)) return null;
+        if (ta.size > 0 && (!ta.fromClient || !(ta.clientBuffer instanceof FloatBuffer))) return null;
+        if (ca.size > 0 && (!ca.fromClient || !(ca.clientBuffer instanceof ByteBuffer))) return null;
+        if (na.size > 0 && (!na.fromClient || !(na.clientBuffer instanceof ByteBuffer))) return null;
+        if (la.size > 0 && (!la.fromClient || !(la.clientBuffer instanceof java.nio.ShortBuffer))) return null;
+        boolean colorFromState = ca.size <= 0;
+        boolean normalFromState = na.size <= 0;
+        boolean lightFromState = la.size <= 0;
+
+        float[] posUv = new float[count * 5];
+        byte[] packed = new byte[count * 12];
+        FloatBuffer pb = (FloatBuffer) pa.clientBuffer;
+        FloatBuffer tb = ta.size > 0 ? (FloatBuffer) ta.clientBuffer : null;
+        ByteBuffer cb = colorFromState ? null : (ByteBuffer) ca.clientBuffer;
+        ByteBuffer nb = normalFromState ? null : (ByteBuffer) na.clientBuffer;
+        java.nio.ShortBuffer lb = lightFromState ? null : (java.nio.ShortBuffer) la.clientBuffer;
+        int pStride = pa.stride / 4;
+        int tStride = ta.stride / 4;
+        int lStride = la.stride / 2;
+        boolean little = java.nio.ByteOrder.nativeOrder() == java.nio.ByteOrder.LITTLE_ENDIAN;
+
+        for (int i = 0; i < count; i++) {
+            int vtx = first + i;
+            int o = i * 5;
+            int pi = pa.clientBaseOffset + vtx * pStride;
+            posUv[o] = pb.get(pi);
+            posUv[o + 1] = pb.get(pi + 1);
+            posUv[o + 2] = pb.get(pi + 2);
+            if (tb != null) {
+                int ti = ta.clientBaseOffset + vtx * tStride;
+                posUv[o + 3] = tb.get(ti);
+                posUv[o + 4] = ta.size > 1 ? tb.get(ti + 1) : 0f;
+            }
+            int q = i * 12;
+            if (cb != null) {
+                int ci = ca.clientBaseOffset + vtx * ca.stride;
+                for (int k = 0; k < 4; k++) packed[q + k] = k < ca.size ? cb.get(ci + k) : (byte) 255;
+            }
+            if (nb != null) {
+                int ni = na.clientBaseOffset + vtx * na.stride;
+                packed[q + 4] = nb.get(ni);
+                packed[q + 5] = nb.get(ni + 1);
+                packed[q + 6] = nb.get(ni + 2);
+            }
+            if (lb != null) {
+                int li = la.clientBaseOffset + vtx * lStride;
+                int s0 = lb.get(li) & 0xFFFF;
+                int s1 = lb.get(li + 1) & 0xFFFF;
+                int u = little ? s0 : s1;
+                int v = little ? s1 : s0;
+                packed[q + 8] = (byte) (u > 255 ? 255 : u);
+                packed[q + 9] = (byte) (v > 255 ? 255 : v);
+            }
+        }
+        return new QuadRecord(s, posUv, packed, count, colorFromState, normalFromState, lightFromState);
+    }
+
     static Runnable createDrawRecord(GLState s, int mode, float[] snap, int count) {
         return new DrawRecord(s, mode, snap, count);
     }

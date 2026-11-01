@@ -8,6 +8,11 @@ public class agl {
    private long b = 0L;
    private wv c = new wv();
    private List d = new ArrayList();
+   // PATCH(perf): биомы/температура запрашиваются подряд для соседних блоков одного чанка — запоминаем последний блок
+   // кэша (избегаем LongHashMap с long-ключами, которые в TeaVM эмулируются и медленны).
+   private int lastX = Integer.MIN_VALUE;
+   private int lastZ = Integer.MIN_VALUE;
+   private cq lastBlock = null;
 
    public agl(vh var1) {
       this.a = var1;
@@ -16,6 +21,10 @@ public class agl {
    public cq a(int var1, int var2) {
       var1 >>= 4;
       var2 >>= 4;
+      if (this.lastBlock != null && var1 == this.lastX && var2 == this.lastZ) {
+         return this.lastBlock;
+      }
+
       long var3 = (long)var1 & 4294967295L | ((long)var2 & 4294967295L) << 32;
       cq var5 = (cq)this.c.a(var3);
       if (var5 == null) {
@@ -25,6 +34,9 @@ public class agl {
       }
 
       var5.f = System.currentTimeMillis();
+      this.lastX = var1;
+      this.lastZ = var2;
+      this.lastBlock = var5;
       return var5;
    }
 
@@ -45,6 +57,7 @@ public class agl {
       long var3 = var1 - this.b;
       if (var3 > 7500L || var3 < 0L) {
          this.b = var1;
+         this.lastBlock = null;
 
          for(int var5 = 0; var5 < this.d.size(); ++var5) {
             cq var6 = (cq)this.d.get(var5);
