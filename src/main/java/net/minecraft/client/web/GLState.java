@@ -275,10 +275,6 @@ public final class GLState {
     /** Запрошенный фильтр увеличения по id текстуры: true = GL_NEAREST (по умолчанию в игре). */
     public final java.util.HashMap<Integer, Boolean> texNearest = new java.util.HashMap<>();
     public boolean curNearest = true;
-    // PATCH(mip): сколько mip-уровней (кроме нулевого) загружено у каждой текстуры / у текущей, и кэш uniform'а
-    public final java.util.HashMap<Integer, Integer> texMipMax = new java.util.HashMap<>();
-    public int curMipMax = 0;
-    public int cMipMax = -1;
     /** Режим обёртки по id текстуры: true = CLAMP (GL_CLAMP/CLAMP_TO_EDGE), по умолчанию REPEAT. */
     public final java.util.HashMap<Integer, Boolean> texClamp = new java.util.HashMap<>();
     public boolean curClamp = false;

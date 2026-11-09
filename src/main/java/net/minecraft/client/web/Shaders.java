@@ -64,7 +64,6 @@ public final class Shaders {
         "uniform vec4 uColorMult;\n" + // текущий glColor4f (используется вместе с per-vertex цветом или вместо)
         "uniform bool uNearest;\n" +   // текстура запрошена с GL_NEAREST: читаем тексели напрямую
         "uniform bool uClamp;\n" +     // режим обёртки CLAMP (иначе REPEAT)
-        "uniform int uMipMax;\n" +     // сколько mip-уровней (кроме 0) загружено у текущей текстуры
         "uniform int uAlphaFunc;\n" +  // 0 = alpha test выкл, 1 = GREATER, 2 = GEQUAL
         "uniform float uAlphaRef;\n" +
         "out vec4 outColor;\n" +
@@ -72,34 +71,14 @@ public final class Shaders {
         // Результат тот же, что у аппаратного NEAREST+REPEAT, но не зависит от
         // фильтра сэмплера: никакого билинейного подмешивания соседних клеток
         // атласа (чёрные контуры у текста/сердец/частиц, "размытый" прицел).
-        // PATCH(mip): раньше всегда читался нулевой уровень — вдали на уменьшенных текстурах получалось "зерно"
-        // (сильный алиасинг: каждый пиксель попадает на случайный тексель и всё мерцает при движении). Теперь для
-        // NEAREST-текстур с загруженными mip-уровнями уровень детализации считается по производным uv, а тексели
-        // берутся ближайшие из двух соседних уровней и смешиваются (аналог NEAREST_MIPMAP_LINEAR). Тайлы атласа
-        // не «слипаются»: уровней не больше 4 (тайл 16x16 -> 1x1).
-        "vec4 fetchNearest(vec2 uv, int level) {\n" +
-        "  ivec2 sz = textureSize(uTexture, level);\n" +
-        "  ivec2 t = ivec2(floor(uv * vec2(sz)));\n" +
-        // ИСПРАВЛЕНО (много обрезанных копий тени под игроком): раньше всегда REPEAT, а тень
-        // (misc/shadow.png) загружается с CLAMP — за пределами 0..1 нужно повторять КРАЙНИЙ тексель.
-        "  t = uClamp ? clamp(t, ivec2(0), sz - ivec2(1)) : ((t % sz) + sz) % sz;\n" +
-        "  return texelFetch(uTexture, t, level);\n" +
-        "}\n" +
         "vec4 sampleTex(vec2 uv) {\n" +
         "  if (uNearest) {\n" +
-        "    float lod = 0.0;\n" +
-        "    if (uMipMax > 0) {\n" +
-        "      vec2 p = uv * vec2(textureSize(uTexture, 0));\n" +
-        "      vec2 dx = dFdx(p);\n" +
-        "      vec2 dy = dFdy(p);\n" +
-        "      float d = max(dot(dx, dx), dot(dy, dy));\n" +
-        "      lod = clamp(0.5 * log2(max(d, 1e-6)) - 0.25, 0.0, float(uMipMax));\n" +
-        "    }\n" +
-        "    int l0 = int(floor(lod));\n" +
-        "    vec4 c0 = fetchNearest(uv, l0);\n" +
-        "    float fr = lod - float(l0);\n" +
-        "    if (fr < 0.01 || l0 >= uMipMax) return c0;\n" +
-        "    return mix(c0, fetchNearest(uv, l0 + 1), fr);\n" +
+        "    ivec2 sz = textureSize(uTexture, 0);\n" +
+        "    ivec2 t = ivec2(floor(uv * vec2(sz)));\n" +
+        // ИСПРАВЛЕНО (много обрезанных копий тени под игроком): раньше всегда REPEAT, а тень
+        // (misc/shadow.png) загружается с CLAMP — за пределами 0..1 нужно повторять КРАЙНИЙ тексель.
+        "    t = uClamp ? clamp(t, ivec2(0), sz - ivec2(1)) : ((t % sz) + sz) % sz;\n" +
+        "    return texelFetch(uTexture, t, 0);\n" +
         "  }\n" +
         "  return texture(uTexture, uv);\n" +
         "}\n" +
@@ -161,7 +140,7 @@ public final class Shaders {
     public final WebGLUniformLocation uLightDir0, uLightDir1, uLightColor0, uLightColor1, uAmbient;
     public final WebGLUniformLocation uUseFog, uFogMode, uFogDensity, uFogStart, uFogEnd, uFogColor;
     public final WebGLUniformLocation uColorMult;
-    public final WebGLUniformLocation uNearest, uClamp, uMipMax, uAlphaFunc, uAlphaRef;
+    public final WebGLUniformLocation uNearest, uClamp, uAlphaFunc, uAlphaRef;
     public final WebGLUniformLocation uLightmap, uUseLightmap;
 
     Shaders(WebGL2 gl) {
@@ -193,7 +172,6 @@ public final class Shaders {
         uFogColor = gl.getUniformLocation(program, "uFogColor");
         uColorMult = gl.getUniformLocation(program, "uColorMult");
         uNearest = gl.getUniformLocation(program, "uNearest");
-        uMipMax = gl.getUniformLocation(program, "uMipMax");
         uClamp = gl.getUniformLocation(program, "uClamp");
         uAlphaFunc = gl.getUniformLocation(program, "uAlphaFunc");
         uAlphaRef = gl.getUniformLocation(program, "uAlphaRef");

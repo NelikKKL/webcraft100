@@ -15,8 +15,7 @@ import net.minecraft.client.awtshim.ImageIO;
 import org.lwjgl.opengl.GL11;
 
 public class zh {
-   // PATCH(mip): mip-уровни включены (в шейдере считается уровень детализации, см. web/Shaders.sampleTex)
-   public static boolean a = true;
+   public static boolean a = false;
    private HashMap d = new HashMap();
    private HashMap e = new HashMap();
    private ob f = new ob();
@@ -230,7 +229,24 @@ public class zh {
       this.h.position(0).limit(var6.length);
       GL11.glTexImage2D(3553, 0, 6408, var3, var4, 0, 6408, 5121, this.h);
       if (a) {
-         this.uploadMips(var6, var3, var4);
+         for(int var18 = 1; var18 <= 4; ++var18) {
+            int var19 = var3 >> var18 - 1;
+            int var20 = var3 >> var18;
+            int var21 = var4 >> var18;
+
+            for(int var22 = 0; var22 < var20; ++var22) {
+               for(int var23 = 0; var23 < var21; ++var23) {
+                  int var24 = this.h.getInt((var22 * 2 + 0 + (var23 * 2 + 0) * var19) * 4);
+                  int var25 = this.h.getInt((var22 * 2 + 1 + (var23 * 2 + 0) * var19) * 4);
+                  int var15 = this.h.getInt((var22 * 2 + 1 + (var23 * 2 + 1) * var19) * 4);
+                  int var16 = this.h.getInt((var22 * 2 + 0 + (var23 * 2 + 1) * var19) * 4);
+                  int var17 = this.a(this.a(var24, var25), this.a(var15, var16));
+                  this.h.putInt((var22 + var23 * var20) * 4, var17);
+               }
+            }
+
+            GL11.glTexImage2D(3553, var18, 6408, var20, var21, 0, 6408, 5121, this.h);
+         }
       }
 
    }
@@ -364,95 +380,6 @@ public class zh {
                GL11.glTexSubImage2D(3553, 0, var3.b % 16 * 16 + var4 * 16, var3.b / 16 * 16 + var5 * 16, 16, 16, 6408, 5121, this.h);
             }
          }
-
-         if (a && var3.a.length == 1024) {
-            // обновляем и mip-уровни тайла (иначе вдали вода/лава/огонь были бы «замороженной» картинкой)
-            byte[] var6 = var3.a;
-            int var7 = 16;
-
-            for(int var8 = 1; var8 <= 4; ++var8) {
-               var6 = this.mipHalf(var6, var7, var7);
-               var7 >>= 1;
-               this.h.clear();
-               this.h.put(var6);
-               this.h.position(0).limit(var6.length);
-
-               for(int var4 = 0; var4 < var3.e; ++var4) {
-                  for(int var5 = 0; var5 < var3.e; ++var5) {
-                     GL11.glTexSubImage2D(3553, var8, (var3.b % 16 * 16 + var4 * 16) >> var8, (var3.b / 16 * 16 + var5 * 16) >> var8, var7, var7, 6408, 5121, this.h);
-                  }
-               }
-            }
-         }
-      }
-
-   }
-
-   /** Уменьшает RGBA-картинку вдвое; цвета усредняются с весом по альфе (нет тёмной каймы у листвы/стекла). */
-   private byte[] mipHalf(byte[] var1, int var2, int var3) {
-      int var4 = var2 >> 1;
-      int var5 = var3 >> 1;
-      byte[] var6 = new byte[var4 * var5 * 4];
-
-      for(int var7 = 0; var7 < var5; ++var7) {
-         for(int var8 = 0; var8 < var4; ++var8) {
-            int var9 = 0;
-            int var10 = 0;
-            int var11 = 0;
-            int var12 = 0;
-            int var13 = 0;
-            int var14 = 0;
-            int var15 = 0;
-
-            for(int var16 = 0; var16 < 2; ++var16) {
-               for(int var17 = 0; var17 < 2; ++var17) {
-                  int var18 = ((var7 * 2 + var16) * var2 + var8 * 2 + var17) * 4;
-                  int var19 = var1[var18] & 255;
-                  int var20 = var1[var18 + 1] & 255;
-                  int var21 = var1[var18 + 2] & 255;
-                  int var22 = var1[var18 + 3] & 255;
-                  var9 += var19 * var22;
-                  var10 += var20 * var22;
-                  var11 += var21 * var22;
-                  var12 += var22;
-                  var13 += var19;
-                  var14 += var20;
-                  var15 += var21;
-               }
-            }
-
-            int var23 = (var7 * var4 + var8) * 4;
-            if (var12 == 0) {
-               var6[var23] = (byte)(var13 / 4);
-               var6[var23 + 1] = (byte)(var14 / 4);
-               var6[var23 + 2] = (byte)(var15 / 4);
-               var6[var23 + 3] = 0;
-            } else {
-               var6[var23] = (byte)(var9 / var12);
-               var6[var23 + 1] = (byte)(var10 / var12);
-               var6[var23 + 2] = (byte)(var11 / var12);
-               var6[var23 + 3] = (byte)((var12 + 2) / 4);
-            }
-         }
-      }
-
-      return var6;
-   }
-
-   /** Заливает mip-уровни 1..4 (меньше, если картинка мала) для текущей текстуры. */
-   private void uploadMips(byte[] var1, int var2, int var3) {
-      byte[] var4 = var1;
-      int var5 = var2;
-      int var6 = var3;
-
-      for(int var7 = 1; var7 <= 4 && var5 >= 2 && var6 >= 2; ++var7) {
-         var4 = this.mipHalf(var4, var5, var6);
-         var5 >>= 1;
-         var6 >>= 1;
-         this.h.clear();
-         this.h.put(var4);
-         this.h.position(0).limit(var4.length);
-         GL11.glTexImage2D(3553, var7, 6408, var5, var6, 0, 6408, 5121, this.h);
       }
 
    }
