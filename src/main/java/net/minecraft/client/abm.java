@@ -64,7 +64,20 @@ public class abm extends yy {
    }
 
    public boolean a(ry var1, int var2, int var3, int var4, vi var5) {
-      return super.a(var1, var2, var3, var4, var5);
+      // PATCH(tnt): ПКМ зажигалкой по TNT поджигает его сразу (раньше только ставился огонь рядом, и TNT загорался случайно)
+      dk var6 = var5.aH();
+      if (var6 != null && var6.c == acy.h.bM) {
+         if (!var1.I) {
+            this.e(var1, var2, var3, var4, 1);
+            var1.g(var2, var3, var4, 0);
+            var1.a((double)var2 + 0.5, (double)var3 + 0.5, (double)var4 + 0.5, "fire.ignite", 1.0F, var1.w.nextFloat() * 0.4F + 0.8F);
+            var6.a(1, var5);
+         }
+
+         return true;
+      } else {
+         return super.a(var1, var2, var3, var4, var5);
+      }
    }
 
    protected dk c_(int var1) {

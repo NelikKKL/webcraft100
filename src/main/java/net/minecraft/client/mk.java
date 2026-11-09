@@ -19,13 +19,13 @@ public class mk extends sr {
       return this.J;
    }
 
-   public int a(kq var1, int var2, int var3, int var4) {
+   protected int grassSample(kq var1, int var2, int var3, int var4) {
       double var5 = (double)var1.a().a(var2, var3, var4);
       double var7 = (double)var1.a().b(var2, var4);
       return ((ha.a(var5, var7) & 16711422) + 5115470) / 2;
    }
 
-   public int b(kq var1, int var2, int var3, int var4) {
+   protected int foliageSample(kq var1, int var2, int var3, int var4) {
       double var5 = (double)var1.a().a(var2, var3, var4);
       double var7 = (double)var1.a().b(var2, var4);
       return ((db.a(var5, var7) & 16711422) + 5115470) / 2;

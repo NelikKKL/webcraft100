@@ -17,8 +17,7 @@ public abstract class agw extends yy {
 
    public int a(kq var1, int var2, int var3, int var4) {
       if (this.bZ == net.minecraft.client.p.g) {
-         sr var5 = var1.a().a(var2, var4);
-         return var5.A;
+         return sr.waterColor(var1, var2, var4);
       } else {
          return 16777215;
       }

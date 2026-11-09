@@ -208,6 +208,8 @@ final class GLBridge {
         s.boundTextureId = id;
         Boolean nearest = s.texNearest.get(id);
         s.curNearest = nearest == null || nearest.booleanValue();
+        Integer mipMax = s.texMipMax.get(id);
+        s.curMipMax = mipMax == null ? 0 : mipMax.intValue();
         Boolean clampMode = s.texClamp.get(id);
         s.curClamp = clampMode != null && clampMode.booleanValue();
         if (!s.glTexValid || s.glTex != tex) {
@@ -224,6 +226,11 @@ final class GLBridge {
         if ((pname == 10242 || pname == 10243) && (param == 10496 || param == 33069)) {
             param = 33071;
         }
+        // PATCH(mip): mip-фильтрацию делает шейдер (texelFetch по уровням), а у сэмплера оставляем фильтр без mip:
+        // иначе при неполной цепочке уровней текстура считалась бы «неполной» и читалась чёрной.
+        if (pname == 10241 && param >= 9984 && param <= 9987) {
+            param = (param == 9984 || param == 9985) ? 9728 : 9729;
+        }
         s.gl.texParameteri(target, pname, param);
         if (pname == 10242 || pname == 10243) {
             boolean clamp = param == 33071;
@@ -237,7 +244,21 @@ final class GLBridge {
         }
     }
 
+    /** Запоминает, какие mip-уровни загружены у текущей текстуры (level 0 сбрасывает: цепочку зальют заново). */
+    static void noteTexLevel(GLState s, int level) {
+        int id = s.boundTextureId;
+        if (level <= 0) {
+            s.texMipMax.remove(id);
+        } else {
+            Integer old = s.texMipMax.get(id);
+            if (old == null || old.intValue() < level) s.texMipMax.put(id, Integer.valueOf(level));
+        }
+        Integer now = s.texMipMax.get(id);
+        s.curMipMax = now == null ? 0 : now.intValue();
+    }
+
     static void deleteTexture(GLState s, int id) {
+        s.texMipMax.remove(id);
         s.texNearest.remove(id);
         s.texClamp.remove(id);
         WebGLTexture tex = s.textures.remove(id);
@@ -1043,6 +1064,10 @@ final class GLBridge {
         if (s.cNearest != nearest) {
             s.gl.uniform1i(sh.uNearest, nearest);
             s.cNearest = nearest;
+        }
+        if (s.cMipMax != s.curMipMax) {
+            s.gl.uniform1i(sh.uMipMax, s.curMipMax);
+            s.cMipMax = s.curMipMax;
         }
         int clampNow = s.curClamp ? 1 : 0;
         if (s.cClamp != clampNow) {

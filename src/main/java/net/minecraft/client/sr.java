@@ -169,8 +169,9 @@ public abstract class sr {
       this.B.a(var1, var2, var3, var4);
    }
 
-   // PATCH(biome-blend): цвет травы/листвы усредняется по 3x3 соседним колонкам (как в более поздних версиях игры),
-   // чтобы на границе биомов был плавный переход цвета, а не ступенька в один блок.
+   // PATCH(biome-blend): цвет травы/листвы усредняется по 3x3 точкам с шагом 2 блока (пятно 5x5) — и, главное, КАЖДАЯ точка
+   // считается по формуле СВОЕГО биома (grassSample/foliageSample). Раньше болото красилось своей формулой по одной точке,
+   // и между болотом и любым другим биомом цвет менялся скачком.
    public int a(kq var1, int var2, int var3, int var4) {
       return this.blend(var1, var2, var3, var4, false);
    }
@@ -179,23 +180,53 @@ public abstract class sr {
       return this.blend(var1, var2, var3, var4, true);
    }
 
+   protected int grassSample(kq var1, int var2, int var3, int var4) {
+      double var5 = (double)var1.a().a(var2, var3, var4);
+      double var7 = (double)var1.a().b(var2, var4);
+      return ha.a(var5, var7);
+   }
+
+   protected int foliageSample(kq var1, int var2, int var3, int var4) {
+      double var5 = (double)var1.a().a(var2, var3, var4);
+      double var7 = (double)var1.a().b(var2, var4);
+      return db.a(var5, var7);
+   }
+
    private int blend(kq var1, int var2, int var3, int var4, boolean var5) {
       vh var6 = var1.a();
       int var7 = 0;
       int var8 = 0;
       int var9 = 0;
 
-      for(int var10 = -1; var10 <= 1; ++var10) {
-         for(int var11 = -1; var11 <= 1; ++var11) {
-            double var12 = (double)var6.a(var2 + var11, var3, var4 + var10);
-            double var14 = (double)var6.b(var2 + var11, var4 + var10);
-            int var16 = var5 ? db.a(var12, var14) : ha.a(var12, var14);
-            var7 += var16 >> 16 & 255;
-            var8 += var16 >> 8 & 255;
-            var9 += var16 & 255;
+      for(int var10 = -2; var10 <= 2; var10 += 2) {
+         for(int var11 = -2; var11 <= 2; var11 += 2) {
+            sr var12 = var6.a(var2 + var11, var4 + var10);
+            int var13 = var5 ? var12.foliageSample(var1, var2 + var11, var3, var4 + var10) : var12.grassSample(var1, var2 + var11, var3, var4 + var10);
+            var7 += var13 >> 16 & 255;
+            var8 += var13 >> 8 & 255;
+            var9 += var13 & 255;
          }
       }
 
       return (var7 / 9 & 255) << 16 | (var8 / 9 & 255) << 8 | var9 / 9 & 255;
+   }
+
+   /** Цвет воды: среднее по 5x5 соседним колонкам (болотная вода плавно переходит в обычную). */
+   public static int waterColor(kq var0, int var1, int var2) {
+      vh var3 = var0.a();
+      int var4 = 0;
+      int var5 = 0;
+      int var6 = 0;
+
+      for(int var7 = -2; var7 <= 2; ++var7) {
+         for(int var8 = -2; var8 <= 2; ++var8) {
+            int var9 = var3.a(var1 + var8, var2 + var7).A;
+            var4 += var9 >> 16 & 255;
+            var5 += var9 >> 8 & 255;
+            var6 += var9 & 255;
+         }
+      }
+
+      return (var4 / 25 & 255) << 16 | (var5 / 25 & 255) << 8 | var6 / 25 & 255;
    }
 }

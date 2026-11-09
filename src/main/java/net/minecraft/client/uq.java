@@ -36,6 +36,12 @@ public class uq extends aes {
 
    public static void a(Minecraft var0, aes var1, int var2, int var3, int var4, int var5) {
       var0.f.a((vi)var0.h, var2, var3, var4, var5);
+      // PATCH(tnt): в творческом режиме не вызывался onBlockClicked (TNT с зажигалкой в руке, нотный блок и т.п.)
+      int var6 = var0.f.a(var2, var3, var4);
+      if (var6 > 0 && yy.k[var6] != null) {
+         yy.k[var6].b(var0.f, var2, var3, var4, (vi)var0.h);
+      }
+
       var1.a(var2, var3, var4, var5);
    }
 

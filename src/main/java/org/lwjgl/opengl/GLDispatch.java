@@ -179,7 +179,7 @@ final class GLDispatch {
 
     static void texImage2D(int target, int level, int w, int h, ByteBuffer pixels) {
         Uint8Array data = GLBridge.toUint8Array(pixels, w * h * 4);
-        maybeRecord(() -> GLRaw.texImage2DRGBA(s().gl, target, level, w, h, data));
+        maybeRecord(() -> { GLRaw.texImage2DRGBA(s().gl, target, level, w, h, data); GLBridge.noteTexLevel(s(), level); });
     }
 
     static void texSubImage2D(int target, int level, int xoff, int yoff, int w, int h, ByteBuffer pixels) {
