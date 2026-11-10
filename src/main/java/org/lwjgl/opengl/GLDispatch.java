@@ -178,13 +178,16 @@ final class GLDispatch {
     }
 
     static void texImage2D(int target, int level, int w, int h, ByteBuffer pixels) {
+        // PATCH(mipmaps): уровни > 0 у текстуры с мип-фильтром строит шим сам (альфа-взвешенно, из уровня 0) —
+        // собственные уровни игры (RenderEngine) не нужны.
+        if (level > 0 && s().texMinReq.containsKey(s().boundTextureId)) return;
         Uint8Array data = GLBridge.toUint8Array(pixels, w * h * 4);
-        maybeRecord(() -> GLRaw.texImage2DRGBA(s().gl, target, level, w, h, data));
+        maybeRecord(() -> GLBridge.texImage2D(s(), target, level, w, h, data));
     }
 
     static void texSubImage2D(int target, int level, int xoff, int yoff, int w, int h, ByteBuffer pixels) {
         Uint8Array data = GLBridge.toUint8Array(pixels, w * h * 4);
-        maybeRecord(() -> GLRaw.texSubImage2DRGBA(s().gl, target, level, xoff, yoff, w, h, data));
+        maybeRecord(() -> GLBridge.texSubImage2D(s(), target, level, xoff, yoff, w, h, data));
     }
 
     // --- vertex arrays ---

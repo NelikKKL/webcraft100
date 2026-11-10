@@ -1019,3 +1019,125 @@
   window.addEventListener('pagehide', onLeave);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') onLeave(); });
 })();
+
+/*
+ * ===== Мипмапы (PATCH(mipmaps)) =====
+ * Против «зерна» на расстоянии. Игра 1.0.0 сэмплирует текстуры без мип-уровней (GL_NEAREST), и вдали
+ * каждый пиксель экрана берёт ОДИН случайный тексель из пиксельной 16x16-текстуры (трава, камень, листва) —
+ * получается шум, который «ползёт» при движении камеры (алиасинг при уменьшении). Здесь строится цепочка
+ * мип-уровней, а шейдер (Shaders.java, sampleTex) по производным UV выбирает уровень и смешивает два соседних.
+ *
+ *  - Усреднение блока 2x2 АЛЬФА-ВЗВЕШЕННОЕ: цвет прозрачных текселей (дырки в листве, стекло, трава)
+ *    не затемняет/не высветляет усреднённый цвет вдали.
+ *  - Число уровней = log2(клетка атласа): клетка = min(w,h)/16, т.е. 256x256 (клетка 16x16) -> 4 уровня,
+ *    512 -> 5, ... максимум 6. Клетки атласа при этом не смешиваются между собой (на последнем уровне клетка = 1 тексель).
+ *  - Копия уровней хранится в JS (tex.__wcMips): анимированные плитки (вода, лава, огонь, портал) обновляются
+ *    игрой через glTexSubImage2D только на уровне 0 — sub() пересчитывает затронутую область нижних уровней.
+ *  - Отключить: localStorage.setItem('webcraft.mipmaps', '0') и перезагрузить страницу.
+ * Вызывается из Mips.java; GL-состояние (привязанная текстура TEXTURE_2D) к этому моменту уже выставлено шимом.
+ */
+(function () {
+  'use strict';
+
+  var MAX_LEVELS = 6;
+  var scratch = new Uint8Array(4096);
+
+  // Сколько ДОПОЛНИТЕЛЬНЫХ уровней строить для текстуры w x h.
+  function levelCount(w, h) {
+    var m = Math.min(w, h), n = 0;
+    while ((m >> 1) >= 16 && n < MAX_LEVELS) { m >>= 1; n++; }
+    return n;
+  }
+
+  // Альфа-взвешенное усреднение блоков 2x2: src (sw x sh) -> область [x0,x1) x [y0,y1) массива dst (ширина dw).
+  // Нечётный размер: последний столбец/строка источника отбрасывается (как в GL: размер уровня = floor(size/2)).
+  function downsample(src, sw, sh, dst, dw, x0, y0, x1, y1) {
+    for (var y = y0; y < y1; y++) {
+      var ya = y * 2, yb = ya + 1 < sh ? ya + 1 : sh - 1;
+      for (var x = x0; x < x1; x++) {
+        var xa = x * 2, xb = xa + 1 < sw ? xa + 1 : sw - 1;
+        var p0 = (ya * sw + xa) * 4, p1 = (ya * sw + xb) * 4, p2 = (yb * sw + xa) * 4, p3 = (yb * sw + xb) * 4;
+        var a0 = src[p0 + 3], a1 = src[p1 + 3], a2 = src[p2 + 3], a3 = src[p3 + 3];
+        var sum = a0 + a1 + a2 + a3;
+        var o = (y * dw + x) * 4;
+        if (sum === 0) {
+          // полностью прозрачный блок: цвет не важен, усредняем как есть
+          dst[o]     = (src[p0]     + src[p1]     + src[p2]     + src[p3]     + 2) >> 2;
+          dst[o + 1] = (src[p0 + 1] + src[p1 + 1] + src[p2 + 1] + src[p3 + 1] + 2) >> 2;
+          dst[o + 2] = (src[p0 + 2] + src[p1 + 2] + src[p2 + 2] + src[p3 + 2] + 2) >> 2;
+          dst[o + 3] = 0;
+        } else {
+          var half = sum >> 1;
+          dst[o]     = (src[p0]     * a0 + src[p1]     * a1 + src[p2]     * a2 + src[p3]     * a3 + half) / sum | 0;
+          dst[o + 1] = (src[p0 + 1] * a0 + src[p1 + 1] * a1 + src[p2 + 1] * a2 + src[p3 + 1] * a3 + half) / sum | 0;
+          dst[o + 2] = (src[p0 + 2] * a0 + src[p1 + 2] * a1 + src[p2 + 2] * a2 + src[p3 + 2] * a3 + half) / sum | 0;
+          dst[o + 3] = (sum + 2) >> 2;
+        }
+      }
+    }
+  }
+
+  // Полная загрузка: уровень 0 уже залит вызывающим (texImage2D), здесь строим и заливаем уровни 1..n.
+  // Возвращает число построенных уровней (0 = мипы не нужны/не получились).
+  function build(gl, tex, w, h, pixels) {
+    var n = levelCount(w, h);
+    if (!gl || !tex || n < 1 || !pixels || pixels.length < w * h * 4) { if (tex) tex.__wcMips = null; return 0; }
+    try {
+      var lv = [pixels.slice(0, w * h * 4)], lw = [w], lh = [h];
+      for (var k = 1; k <= n; k++) {
+        var cw = Math.max(1, lw[k - 1] >> 1), ch = Math.max(1, lh[k - 1] >> 1);
+        var buf = new Uint8Array(cw * ch * 4);
+        downsample(lv[k - 1], lw[k - 1], lh[k - 1], buf, cw, 0, 0, cw, ch);
+        lv.push(buf); lw.push(cw); lh.push(ch);
+        gl.texImage2D(3553, k, gl.RGBA8, cw, ch, 0, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      }
+      gl.texParameteri(3553, 33085 /* TEXTURE_MAX_LEVEL */, n);   // текстура «mipmap complete» для уровней 0..n
+      tex.__wcMips = { n: n, lv: lv, w: lw, h: lh };
+      return n;
+    } catch (err) {
+      // мипмапы — улучшение картинки, не повод ронять игру: без уровней текстура читается как раньше (уровень 0)
+      console.warn('WebcraftMips.build failed:', err);
+      tex.__wcMips = null;
+      return 0;
+    }
+  }
+
+  // Частичное обновление уровня 0 (glTexSubImage2D): уровень 0 уже обновлён вызывающим, пересчитываем нижние.
+  function sub(gl, tex, xoff, yoff, w, h, pixels) {
+    try { subImpl(gl, tex, xoff, yoff, w, h, pixels); }
+    catch (err) { console.warn('WebcraftMips.sub failed:', err); if (tex) tex.__wcMips = null; }
+  }
+  function subImpl(gl, tex, xoff, yoff, w, h, pixels) {
+    var st = tex && tex.__wcMips;
+    if (!st || !pixels || pixels.length < w * h * 4) return;
+    var W = st.w[0], H = st.h[0];
+    if (xoff < 0 || yoff < 0 || xoff + w > W || yoff + h > H) return;   // GL такой вызов тоже отвергает
+    var base = st.lv[0];
+    for (var row = 0; row < h; row++) {
+      base.set(pixels.subarray(row * w * 4, (row + 1) * w * 4), ((yoff + row) * W + xoff) * 4);
+    }
+    var x0 = xoff, y0 = yoff, x1 = xoff + w, y1 = yoff + h;
+    for (var k = 1; k <= st.n; k++) {
+      x0 >>= 1; y0 >>= 1; x1 = (x1 + 1) >> 1; y1 = (y1 + 1) >> 1;   // область, затронутая блоками 2x2
+      var cw = st.w[k], ch = st.h[k];
+      if (x1 > cw) x1 = cw;
+      if (y1 > ch) y1 = ch;
+      if (x1 <= x0 || y1 <= y0) break;
+      var dst = st.lv[k];
+      downsample(st.lv[k - 1], st.w[k - 1], st.h[k - 1], dst, cw, x0, y0, x1, y1);
+      var rw = x1 - x0, rh = y1 - y0, out;
+      if (rw === cw) {
+        out = dst.subarray(y0 * cw * 4, y1 * cw * 4);
+      } else {
+        if (scratch.length < rw * rh * 4) scratch = new Uint8Array(rw * rh * 4);
+        out = scratch.subarray(0, rw * rh * 4);
+        for (var r = 0; r < rh; r++) {
+          out.set(dst.subarray(((y0 + r) * cw + x0) * 4, ((y0 + r) * cw + x1) * 4), r * rw * 4);
+        }
+      }
+      gl.texSubImage2D(3553, k, x0, y0, rw, rh, gl.RGBA, gl.UNSIGNED_BYTE, out);
+    }
+  }
+
+  window.WebcraftMips = { levels: levelCount, build: build, sub: sub, _downsample: downsample };
+})();

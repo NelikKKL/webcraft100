@@ -278,6 +278,12 @@ public final class GLState {
     /** Режим обёртки по id текстуры: true = CLAMP (GL_CLAMP/CLAMP_TO_EDGE), по умолчанию REPEAT. */
     public final java.util.HashMap<Integer, Boolean> texClamp = new java.util.HashMap<>();
     public boolean curClamp = false;
+    // PATCH(mipmaps): мип-уровни. texMips — сколько ДОПОЛНИТЕЛЬНЫХ уровней реально построено (нет записи = 0),
+    // curMips — то же для текущей привязанной текстуры (-> uniform uMipMax). texMinReq — мип-фильтр
+    // (GL_*_MIPMAP_*), который игра запросила через GL_TEXTURE_MIN_FILTER; в WebGL он уходит только когда уровни построены.
+    public final java.util.HashMap<Integer, Integer> texMips = new java.util.HashMap<>();
+    public final java.util.HashMap<Integer, Integer> texMinReq = new java.util.HashMap<>();
+    public int curMips = 0;
     public float r = 1, g = 1, b = 1, a = 1;
     public float nx = 0, ny = 1, nz = 0;
     public float alphaRef = 0f;
@@ -340,7 +346,7 @@ public final class GLState {
     public final float[] cProj = new float[16];
     public final float[] cMv = new float[16];
     public boolean cProjValid = false, cMvValid = false;
-    public int cUseTex = -1, cUseLight = -1, cUseFog = -1, cNearest = -1, cClamp = -1, cAlphaFunc = -1;
+    public int cUseTex = -1, cUseLight = -1, cUseFog = -1, cNearest = -1, cClamp = -1, cAlphaFunc = -1, cMips = -1;
     public float cAlphaRef = -1f;
     public final float[] cLight = new float[15];
     public boolean cLightValid = false;

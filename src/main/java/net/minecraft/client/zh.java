@@ -15,7 +15,9 @@ import net.minecraft.client.awtshim.ImageIO;
 import org.lwjgl.opengl.GL11;
 
 public class zh {
-   public static boolean a = false;
+   // PATCH(mipmaps): useMipmaps. Раньше false -> текстуры без мип-уровней -> «зерно» на расстоянии (см. Mips.java).
+   // При true игра ставит текстурам GL_NEAREST_MIPMAP_LINEAR, а сами уровни строит шим (web/extras.js).
+   public static boolean a = net.minecraft.client.web.Mips.enabled();
    private HashMap d = new HashMap();
    private HashMap e = new HashMap();
    private ob f = new ob();
@@ -228,27 +230,8 @@ public class zh {
       this.h.put(var6);
       this.h.position(0).limit(var6.length);
       GL11.glTexImage2D(3553, 0, 6408, var3, var4, 0, 6408, 5121, this.h);
-      if (a) {
-         for(int var18 = 1; var18 <= 4; ++var18) {
-            int var19 = var3 >> var18 - 1;
-            int var20 = var3 >> var18;
-            int var21 = var4 >> var18;
-
-            for(int var22 = 0; var22 < var20; ++var22) {
-               for(int var23 = 0; var23 < var21; ++var23) {
-                  int var24 = this.h.getInt((var22 * 2 + 0 + (var23 * 2 + 0) * var19) * 4);
-                  int var25 = this.h.getInt((var22 * 2 + 1 + (var23 * 2 + 0) * var19) * 4);
-                  int var15 = this.h.getInt((var22 * 2 + 1 + (var23 * 2 + 1) * var19) * 4);
-                  int var16 = this.h.getInt((var22 * 2 + 0 + (var23 * 2 + 1) * var19) * 4);
-                  int var17 = this.a(this.a(var24, var25), this.a(var15, var16));
-                  this.h.putInt((var22 + var23 * var20) * 4, var17);
-               }
-            }
-
-            GL11.glTexImage2D(3553, var18, 6408, var20, var21, 0, 6408, 5121, this.h);
-         }
-      }
-
+      // PATCH(mipmaps): собственный CPU-цикл уровней 1..4 убран — шим строит мип-цепочку сам при glTexImage2D уровня 0
+      // (альфа-взвешенно, с числом уровней по размеру клетки атласа) и обновляет её при glTexSubImage2D (анимация плиток).
    }
 
    public void a(int[] var1, int var2, int var3, int var4) {

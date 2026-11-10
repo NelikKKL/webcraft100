@@ -210,6 +210,8 @@ final class GLBridge {
         s.curNearest = nearest == null || nearest.booleanValue();
         Boolean clampMode = s.texClamp.get(id);
         s.curClamp = clampMode != null && clampMode.booleanValue();
+        Integer mips = s.texMips.get(id);
+        s.curMips = mips == null ? 0 : mips.intValue();   // PATCH(mipmaps)
         if (!s.glTexValid || s.glTex != tex) {
             s.gl.bindTexture(GL_TEXTURE_2D, tex);
             s.glTex = tex;
@@ -224,6 +226,18 @@ final class GLBridge {
         if ((pname == 10242 || pname == 10243) && (param == 10496 || param == 33069)) {
             param = 33071;
         }
+        // PATCH(mipmaps): GL_TEXTURE_MIN_FILTER. Мип-фильтр (9984..9987, его ставит игра при zh.a = true) запоминаем,
+        // а в WebGL отдаём только когда мип-уровни построены (иначе текстура «неполная» и читается чёрной).
+        if (pname == 10241) {
+            int texId = s.boundTextureId;
+            if (param >= 9984 && param <= 9987) {
+                s.texMinReq.put(texId, Integer.valueOf(param));
+                applyMinFilter(s, target, texId);
+                return;
+            }
+            s.texMinReq.remove(texId);
+            if (s.texMips.remove(texId) != null) s.curMips = 0;
+        }
         s.gl.texParameteri(target, pname, param);
         if (pname == 10242 || pname == 10243) {
             boolean clamp = param == 33071;
@@ -237,9 +251,45 @@ final class GLBridge {
         }
     }
 
+    /** PATCH(mipmaps): выставляет в WebGL фильтр уменьшения — запрошенный игрой мип-фильтр только при построенных уровнях. */
+    private static void applyMinFilter(GLState s, int target, int id) {
+        Integer req = s.texMinReq.get(id);
+        if (req == null) return;
+        Integer built = s.texMips.get(id);
+        int p = req.intValue();
+        if (built == null || built.intValue() == 0) {
+            p = (p == 9985 || p == 9987) ? 9729 : 9728;   // *_MIPMAP_* -> обычный NEAREST/LINEAR
+        }
+        s.gl.texParameteri(target, 10241, p);
+    }
+
+    /** PATCH(mipmaps): glTexImage2D. Уровень 0 текстуры с мип-фильтром порождает цепочку мип-уровней (см. Mips). */
+    static void texImage2D(GLState s, int target, int level, int w, int h, Uint8Array data) {
+        GLRaw.texImage2DRGBA(s.gl, target, level, w, h, data);
+        if (level != 0) return;
+        int id = s.boundTextureId;
+        int n = 0;
+        if (s.texMinReq.containsKey(id) && s.boundTexture != null) {
+            n = Mips.build(s.gl, s.boundTexture, w, h, data);
+        }
+        if (n > 0) s.texMips.put(id, Integer.valueOf(n)); else s.texMips.remove(id);
+        s.curMips = n;
+        applyMinFilter(s, target, id);
+    }
+
+    /** PATCH(mipmaps): glTexSubImage2D. Правка уровня 0 (анимированные плитки, динамические текстуры) обновляет и нижние уровни. */
+    static void texSubImage2D(GLState s, int target, int level, int xoff, int yoff, int w, int h, Uint8Array data) {
+        GLRaw.texSubImage2DRGBA(s.gl, target, level, xoff, yoff, w, h, data);
+        if (level == 0 && s.curMips > 0 && s.boundTexture != null) {
+            Mips.sub(s.gl, s.boundTexture, xoff, yoff, w, h, data);
+        }
+    }
+
     static void deleteTexture(GLState s, int id) {
         s.texNearest.remove(id);
         s.texClamp.remove(id);
+        s.texMips.remove(id);      // PATCH(mipmaps)
+        s.texMinReq.remove(id);
         WebGLTexture tex = s.textures.remove(id);
         if (tex != null) {
             s.gl.deleteTexture(tex);
@@ -1043,6 +1093,11 @@ final class GLBridge {
         if (s.cNearest != nearest) {
             s.gl.uniform1i(sh.uNearest, nearest);
             s.cNearest = nearest;
+        }
+        int mipsNow = s.curMips;   // PATCH(mipmaps): число доп. мип-уровней текущей текстуры (0 = только уровень 0)
+        if (s.cMips != mipsNow) {
+            s.gl.uniform1i(sh.uMipMax, mipsNow);
+            s.cMips = mipsNow;
         }
         int clampNow = s.curClamp ? 1 : 0;
         if (s.cClamp != clampNow) {

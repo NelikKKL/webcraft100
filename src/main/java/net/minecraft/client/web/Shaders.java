@@ -38,7 +38,9 @@ public final class Shaders {
 
     private static final String FRAGMENT_SRC =
         "#version 300 es\n" +
-        "precision mediump float;\n" +
+        // PATCH(mipmaps): highp вместо mediump. На мобильных GPU mediump = fp16: UV атласа теряют точность (~0.1 текселя на
+        // 256-px атласе, хуже на HD-паках), клетки атласа «мерцают»/подмешиваются, а выбор мип-уровня тем более дрожит.
+        "precision highp float;\n" +
         "in vec2 vTexCoord;\n" +
         "in vec4 vColor;\n" +
         "in vec3 vNormalWorld;\n" +
@@ -64,6 +66,7 @@ public final class Shaders {
         "uniform vec4 uColorMult;\n" + // текущий glColor4f (используется вместе с per-vertex цветом или вместо)
         "uniform bool uNearest;\n" +   // текстура запрошена с GL_NEAREST: читаем тексели напрямую
         "uniform bool uClamp;\n" +     // режим обёртки CLAMP (иначе REPEAT)
+        "uniform int uMipMax;\n" +     // PATCH(mipmaps): число дополнительных мип-уровней текстуры (0 = только уровень 0)
         "uniform int uAlphaFunc;\n" +  // 0 = alpha test выкл, 1 = GREATER, 2 = GEQUAL
         "uniform float uAlphaRef;\n" +
         "out vec4 outColor;\n" +
@@ -71,14 +74,41 @@ public final class Shaders {
         // Результат тот же, что у аппаратного NEAREST+REPEAT, но не зависит от
         // фильтра сэмплера: никакого билинейного подмешивания соседних клеток
         // атласа (чёрные контуры у текста/сердец/частиц, "размытый" прицел).
+        // PATCH(mipmaps): ПРИЧИНА «ЗЕРНА» НА РАССТОЯНИИ. Раньше здесь всегда читался уровень 0 без фильтрации: вдали на
+        // один пиксель экрана приходится много текселей пиксельной 16x16-текстуры, но берётся ровно один (случайный) ->
+        // шум, который ползёт при движении камеры. Теперь уровень выбирается по размеру пикселя экрана в текселях
+        // (производные UV, как у аппаратного GL_NEAREST_MIPMAP_LINEAR): вблизи (увеличение) — прежние чёткие пиксели,
+        // вдали — усреднённые уровни, плавно смешанные между собой. Цепочку уровней строит web/extras.js (WebcraftMips).
+        // Уровни ограничены размером клетки атласа (Mips: 256-px атлас -> 4 уровня), поэтому соседние клетки не смешиваются.
+        "vec4 fetchLevel(vec2 tc, ivec2 sz, int level) {\n" +
+        "  int scale = 1 << level;\n" +
+        "  ivec2 lsz = max(sz / scale, ivec2(1));\n" +
+        "  ivec2 t = ivec2(floor(tc / float(scale)));\n" +
+        // ИСПРАВЛЕНО (много обрезанных копий тени под игроком): раньше всегда REPEAT, а тень
+        // (misc/shadow.png) загружается с CLAMP — за пределами 0..1 нужно повторять КРАЙНИЙ тексель.
+        "  t = uClamp ? clamp(t, ivec2(0), lsz - ivec2(1)) : ((t % lsz) + lsz) % lsz;\n" +
+        "  return texelFetch(uTexture, t, level);\n" +
+        "}\n" +
         "vec4 sampleTex(vec2 uv) {\n" +
         "  if (uNearest) {\n" +
         "    ivec2 sz = textureSize(uTexture, 0);\n" +
-        "    ivec2 t = ivec2(floor(uv * vec2(sz)));\n" +
-        // ИСПРАВЛЕНО (много обрезанных копий тени под игроком): раньше всегда REPEAT, а тень
-        // (misc/shadow.png) загружается с CLAMP — за пределами 0..1 нужно повторять КРАЙНИЙ тексель.
-        "    t = uClamp ? clamp(t, ivec2(0), sz - ivec2(1)) : ((t % sz) + sz) % sz;\n" +
-        "    return texelFetch(uTexture, t, 0);\n" +
+        "    vec2 tc = uv * vec2(sz);\n" +
+        "    if (uMipMax <= 0) return fetchLevel(tc, sz, 0);\n" +
+        "    vec2 dx = dFdx(tc);\n" +
+        "    vec2 dy = dFdy(tc);\n" +
+        // rho2 = (размер пикселя экрана в текселях по большей оси)^2; <= 1 (увеличение, 1:1) -> уровень 0, как раньше
+        "    float rho2 = max(dot(dx, dx), dot(dy, dy));\n" +
+        "    if (rho2 <= 1.0) return fetchLevel(tc, sz, 0);\n" +
+        "    float lod = clamp(0.5 * log2(rho2), 0.0, float(uMipMax));\n" +
+        "    int l0 = int(floor(lod));\n" +
+        "    float fr = lod - float(l0);\n" +
+        "    vec4 c0 = fetchLevel(tc, sz, l0);\n" +
+        "    if (fr < 0.02 || l0 >= uMipMax) return c0;\n" +
+        "    vec4 c1 = fetchLevel(tc, sz, l0 + 1);\n" +
+        // смешиваем с премультиплицированным цветом: цвет прозрачных текселей не просачивается в результат
+        "    float a = mix(c0.a, c1.a, fr);\n" +
+        "    vec3 rgb = mix(c0.rgb * c0.a, c1.rgb * c1.a, fr);\n" +
+        "    return vec4(a > 0.0 ? rgb / a : c0.rgb, a);\n" +
         "  }\n" +
         "  return texture(uTexture, uv);\n" +
         "}\n" +
@@ -141,6 +171,7 @@ public final class Shaders {
     public final WebGLUniformLocation uUseFog, uFogMode, uFogDensity, uFogStart, uFogEnd, uFogColor;
     public final WebGLUniformLocation uColorMult;
     public final WebGLUniformLocation uNearest, uClamp, uAlphaFunc, uAlphaRef;
+    public final WebGLUniformLocation uMipMax;   // PATCH(mipmaps)
     public final WebGLUniformLocation uLightmap, uUseLightmap;
 
     Shaders(WebGL2 gl) {
@@ -175,6 +206,7 @@ public final class Shaders {
         uClamp = gl.getUniformLocation(program, "uClamp");
         uAlphaFunc = gl.getUniformLocation(program, "uAlphaFunc");
         uAlphaRef = gl.getUniformLocation(program, "uAlphaRef");
+        uMipMax = gl.getUniformLocation(program, "uMipMax");
         uLightmap = gl.getUniformLocation(program, "uLightmap");
         uUseLightmap = gl.getUniformLocation(program, "uUseLightmap");
     }
